@@ -265,7 +265,7 @@
   <header class="pres-header">
     <div class="lab-badge">🔬 Hands-On Lab · Module 4</div>
     <h1>Azure <span>Storage</span><br>Lab Presentation</h1>
-    <p>Step-by-step practical guide for IIMT students. By the end of this lab, you will have created and used all 4 Azure Storage types.</p>
+    <p>Step-by-step practical guide. By the end of this lab, you will have created and used all 4 Azure Storage types.</p>
     <div class="agenda-chips">
       <span class="chip">Lab 1: Storage Account</span>
       <span class="chip">Lab 2: Blob Storage</span>
@@ -351,7 +351,7 @@
           <div>Fill in the <b>Basics</b> tab:
             <div class="code"><div class="code-bar"><span class="code-lang">Settings</span></div>
               <pre>Resource Group   : [select your existing group]
-Storage name     : <span class="c-str">iimt2026storage</span>  <span class="c-cmt"># must be lowercase, globally unique</span>
+Storage name     : <span class="c-str">mylab2026storage</span>  <span class="c-cmt"># must be lowercase, globally unique</span>
 Region           : <span class="c-arg">Central India</span>
 Performance      : <span class="c-arg">Standard</span>
 Redundancy       : <span class="c-arg">LRS</span>  <span class="c-cmt"># cheapest, fine for practice</span></pre>
@@ -370,7 +370,7 @@ Redundancy       : <span class="c-arg">LRS</span>  <span class="c-cmt"># cheapes
 
       <div class="box result">
         <div class="box-head">Expected Result</div>
-        You should see the Storage Account overview page. The URL will be: <code>https://iimt2026storage.blob.core.windows.net</code>
+        You should see the Storage Account overview page. The URL will be: <code>https://mylab2026storage.blob.core.windows.net</code>
       </div>
 
       <div class="box info" style="margin-top:12px;">
@@ -554,10 +554,10 @@ Allowed protocols : <span class="c-arg">HTTPS only</span></pre>
           <span class="inst-num">5</span>
           <div>Copy the PowerShell script — it looks like this:
             <div class="code"><div class="code-bar"><span class="code-lang">PowerShell</span></div>
-              <pre><span class="c-cmd">$connectTestResult</span> = <span class="c-cmd">Test-NetConnection</span> <span class="c-str">-ComputerName</span> iimt2026storage.file.core.windows.net <span class="c-str">-Port</span> <span class="c-arg">445</span>
+              <pre><span class="c-cmd">$connectTestResult</span> = <span class="c-cmd">Test-NetConnection</span> <span class="c-str">-ComputerName</span> mylab2026storage.file.core.windows.net <span class="c-str">-Port</span> <span class="c-arg">445</span>
 <span class="c-cmd">if</span> (<span class="c-cmd">$connectTestResult</span>.TcpTestSucceeded) {
     <span class="c-cmt"># Mount drive</span>
-    <span class="c-cmd">cmd</span> /c <span class="c-str">"net use Z: \\iimt2026storage.file.core.windows.net\classshare /u:AZURE\iimt2026storage [storage-key]"</span>
+    <span class="c-cmd">cmd</span> /c <span class="c-str">"net use Z: \\mylab2026storage.file.core.windows.net\classshare /u:AZURE\mylab2026storage [storage-key]"</span>
 }</pre>
             </div>
           </div>
@@ -782,7 +782,7 @@ Allowed protocols : <span class="c-arg">HTTPS only</span></pre>
   </div>
 
   <footer class="foot" style="margin-top:32px;">
-    <b>IIMT College · Azure Administration (AZ-104) · 3rd Semester</b><br>
+    <b>Azure Administration (AZ-104)</b><br>
     Module 4 — Azure Storage Lab Presentation · Day-09
   </footer>
 

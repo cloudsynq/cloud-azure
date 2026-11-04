@@ -1,66 +1,65 @@
-# Cloud Computing — Azure (AZ-104)
-**IIMT University, Meerut · 3rd Semester · Trainer: Sahil Kumar**
+# Cloud Computing — Microsoft Azure (AZ-104)
 
-> 🌐 **Student website (always up to date):** https://cloudsynq.github.io/cloud-azure-iimt/
+Theory notes, hands-on labs and a full syllabus for Azure Administrator (AZ-104).
+Free and open — no login, nothing to install.
 
-Theory notes and lab guides for the Azure AZ-104 batch. New material is added after every class. Use the links below to open notes directly in your browser — no download needed.
+By **Sahil Kumar** · AWS Certified Solutions Architect – Associate
 
----
+> 🌐 **Read it here:** https://cloudsynq.github.io/cloud-azure-iimt/
+> 📚 **All courses:** https://cloudsynq.github.io/
 
-## 📚 Modules
-
-### Module 00 · Introduction & Azure Fundamentals
-| File | Type |
-|------|------|
-| [Networking from Zero](00-introduction/networking-from-zero.pdf) | PDF |
-| [Networking Fundamentals — Azure](00-introduction/networking-fundamentals-azure.pdf) | PDF |
-| [Cloud Terminology](00-introduction/cloud-terminology.pdf) | PDF |
-| [Lab: Create Your Account](00-introduction/lab-create-account.pptx) | PPTX |
+Every page is formatted to print cleanly, so any page can be saved as a PDF
+with **Ctrl + P → Save as PDF**.
 
 ---
 
-### Module 01 · Resource Groups, RBAC & Virtual Machines
-| File | Type |
-|------|------|
-| [Lab Guide](01-resource-groups-vms/lab-guide.pptx) | PPTX |
-| [Lab: Resource Group & VM](01-resource-groups-vms/lab-resource-group-vm.pdf) | PDF |
+## Modules
 
-Topics: Management Groups · Subscriptions · Resource Groups · RBAC · VM sizes · NSG · Disks
+| # | Module | Material |
+|---|---|---|
+| 00 | Introduction & Azure Fundamentals | [Networking from zero](00-introduction/networking-from-zero.pdf) · [Azure networking](00-introduction/networking-fundamentals-azure.pdf) · [Terminology](00-introduction/cloud-terminology.pdf) |
+| 01 | Resource Groups, RBAC & Entra ID | [Theory](https://cloudsynq.github.io/cloud-azure-iimt/01-resource-groups-vms/theory-notes.html) · [Lab PDF](01-resource-groups-vms/lab-resource-group-vm.pdf) |
+| 02 | ARM Templates & Bicep | [Theory](https://cloudsynq.github.io/cloud-azure-iimt/02-arm-templates/theory-notes.html) |
+| 03 | Azure Virtual Machines | [Theory](https://cloudsynq.github.io/cloud-azure-iimt/03-azure-vms/theory-notes.html) |
+| 04 | Azure Storage | [Theory](https://cloudsynq.github.io/cloud-azure-iimt/04-storage/theory-notes.html) · [Lab](https://cloudsynq.github.io/cloud-azure-iimt/04-storage/lab.html) |
+| 05 | Virtual Networks | [Theory](https://cloudsynq.github.io/cloud-azure-iimt/05-virtual-networks/theory-notes.html) · [Lab](https://cloudsynq.github.io/cloud-azure-iimt/05-virtual-networks/lab.html) · [Screenshot guide](05-virtual-networks/lab-guide.pdf) |
+| 06 | Intersite Connectivity | [Theory](https://cloudsynq.github.io/cloud-azure-iimt/06-intersite-connectivity/theory-notes.html) |
+| 07 | Traffic Management | [Theory](https://cloudsynq.github.io/cloud-azure-iimt/07-traffic-management/theory-notes.html) |
+| 08 | Azure Monitoring | [Theory](https://cloudsynq.github.io/cloud-azure-iimt/08-monitoring/theory-notes.html) |
+| 09 | Data Protection & Backup | [Theory](https://cloudsynq.github.io/cloud-azure-iimt/09-data-protection/theory-notes.html) |
+| 10 | App Services & Containers | [Theory](https://cloudsynq.github.io/cloud-azure-iimt/10-app-services/theory-notes.html) |
+| 11 | Azure Entra ID | [Theory](https://cloudsynq.github.io/cloud-azure-iimt/11-entra-id/theory-notes.html) |
+| 12 | Azure Governance | [Theory](https://cloudsynq.github.io/cloud-azure-iimt/12-governance/theory-notes.html) |
+| 13 | Managed Disks | [Theory](https://cloudsynq.github.io/cloud-azure-iimt/13-managed-disks/theory-notes.html) · [Lab](https://cloudsynq.github.io/cloud-azure-iimt/13-managed-disks/lab.html) |
+| 14 | Azure CDN | [Theory](https://cloudsynq.github.io/cloud-azure-iimt/14-cdn/theory-notes.html) · [Lab](https://cloudsynq.github.io/cloud-azure-iimt/14-cdn/lab.html) |
+| 15 | Blob Versioning, Snapshots & Soft Delete | [Theory](https://cloudsynq.github.io/cloud-azure-iimt/15-blob-versioning/theory-notes.html) |
+| 16 | Storage Replication — LRS/ZRS/GRS | [Theory](https://cloudsynq.github.io/cloud-azure-iimt/16-storage-replication/theory-notes.html) |
+| 17 | VM Extensions | [Theory & Lab](https://cloudsynq.github.io/cloud-azure-iimt/17-vm-extensions/theory-notes.html) · [Script](17-vm-extensions/install-iis.ps1) |
 
----
-
-### Module 02 · ARM Templates *(theory covered in class)*
-ARM Templates (Infrastructure as Code) — lab materials coming soon.
-
----
-
-### Module 03 · Azure Virtual Machines *(theory covered in class)*
-VM deployment, availability sets, extensions — lab materials coming soon.
-
----
-
-### Module 04 · Azure Storage
-| File | Type |
-|------|------|
-| [Theory Notes](https://cloudsynq.github.io/cloud-azure-iimt/04-storage/theory-notes.html) | HTML (open in browser) |
-| [Lab Presentation](https://cloudsynq.github.io/cloud-azure-iimt/04-storage/lab.html) | HTML (open in browser) |
-
-Topics: Storage Account · Blob Storage · Azure Files (SMB) · Tables · Queues · Redundancy (LRS/GRS) · SAS Tokens · Access Tiers
+**Coming up:** VNet Peering · Azure DNS Private Zones · Load Balancer · VM Scale Sets · Application Gateway · Azure Backup
 
 ---
 
-### Coming Soon
-`05-vnet` · `06-intersite-connectivity` · `07-traffic-management` · `08-monitoring` · `09-backup` · `10-aks` · `11-serverless` · `12-data-services`
+## What is in each module
+
+- **Theory notes** — the concept explained from the problem it solves, with
+  diagrams, everyday analogies and real-world scenarios, ending in exam questions.
+- **Hands-on lab** — step-by-step instructions you can follow in the Azure Portal,
+  including what should go wrong and how to fix it.
+- **Screenshot guide** — a PDF walkthrough of a lab as it was actually run.
 
 ---
 
-## 📁 Repo Structure
+## Structure
+
 ```
 cloud-azure-iimt/
-├── 00-introduction/          ← PDFs + account setup lab
-├── 01-resource-groups-vms/   ← Lab guides (PPTX + PDF)
-├── 04-storage/               ← Theory notes + Lab
-└── (05–12 coming soon)
+├── index.md          ← the course home page
+├── syllabus.html     ← full syllabus with progress
+├── resources.md      ← recommended books, docs and videos
+└── NN-module/
+    ├── theory-notes.html
+    └── lab.html
 ```
 
 ---

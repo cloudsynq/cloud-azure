@@ -1,7 +1,7 @@
 # Cloud Computing — Azure (AZ-104)
 
-**IIMT University, Meerut** · 3rd Semester
-Trainer: Sahil Kumar
+Theory notes, hands-on labs and the full syllabus — free and open to everyone.
+By **Sahil Kumar** · AWS Certified Solutions Architect – Associate
 
 [← All courses](https://cloudsynq.github.io/)
 
