@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ page.title | default: site.title }}</title>
+<meta name="description" content="{{ page.description | default: site.description }}">
+<meta name="author" content="Sahil Kumar">
+<meta property="og:title" content="{{ page.title | default: site.title }}">
+<meta property="og:description" content="{{ page.description | default: site.description }}">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap">
+<style>
+  :root {
+    --paper:     #faf6ef;
+    --paper-2:   #f3ece0;
+    --paper-3:   #ece2d2;
+    --ink:       #2d2822;
+    --ink-soft:  #5e554a;
+    --ink-faint: #8d8275;
+    --rule:      #ded2bf;
+    --rule-soft: #ebe1d0;
+    --accent:    {{ site.accent | default: '#9a3b2f' }};
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:     #191613;
+      --paper-2:   #211d19;
+      --paper-3:   #2a251f;
+      --ink:       #ece3d5;
+      --ink-soft:  #aa9f90;
+      --ink-faint: #7d7265;
+      --rule:      #352e26;
+      --rule-soft: #292320;
+      --accent:    {{ site.accent_dark | default: '#e0917c' }};
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:     #191613;
+    --paper-2:   #211d19;
+    --paper-3:   #2a251f;
+    --ink:       #ece3d5;
+    --ink-soft:  #aa9f90;
+    --ink-faint: #7d7265;
+    --rule:      #352e26;
+    --rule-soft: #292320;
+    --accent:    {{ site.accent_dark | default: '#e0917c' }};
+    color-scheme: dark;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Newsreader', Georgia, 'Times New Roman', serif;
+    font-size: 18px;
+    line-height: 1.72;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  .sheet { max-width: 680px; margin: 0 auto; padding-inline: 24px; }
+
+  /* ---- running head ---- */
+  .running {
+    border-bottom: 1px solid var(--rule-soft);
+    background: var(--paper);
+    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10;
+  }
+  .running .sheet {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 16px; padding-block: 13px;
+    font-size: 12px; letter-spacing: .15em; text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .running a { color: var(--ink-faint); text-decoration: none; }
+  .running a:hover { color: var(--accent); }
+  .running .vol { color: var(--accent); font-weight: 500; }
+
+  /* ---- volume title ---- */
+  main { padding-block: 56px 0; }
+
+  h1 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 600;
+    font-size: clamp(2.1rem, 7vw, 3rem);
+    line-height: 1.06; letter-spacing: -0.015em;
+    margin-bottom: 18px; text-wrap: balance;
+  }
+
+  /* the two intro lines straight after h1 */
+  h1 + p {
+    font-size: 19px; color: var(--ink-soft);
+    max-width: 46ch; line-height: 1.6;
+  }
+  h1 + p + p { font-size: 16px; color: var(--ink-faint); margin-top: 10px; }
+
+  h2 {
+    font-family: 'Fraunces', serif; font-weight: 600;
+    font-size: 13px; letter-spacing: .17em; text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 56px 0 26px;
+    padding-bottom: 11px; border-bottom: 1px solid var(--rule);
+  }
+
+  /* ---- a chapter entry ---- */
+  h3 {
+    font-family: 'Fraunces', serif; font-weight: 600;
+    font-size: 1.32rem; line-height: 1.22; letter-spacing: -0.008em;
+    margin: 34px 0 5px;
+  }
+  h3 + p { color: var(--ink-soft); font-size: 17px; line-height: 1.58; }
+
+  p { margin-bottom: 14px; }
+  p:last-child { margin-bottom: 0; }
+
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--rule); }
+  a:hover { border-bottom-color: var(--accent); }
+
+  ul, ol { margin: 0 0 16px 24px; }
+  li { margin-bottom: 6px; }
+  li::marker { color: var(--ink-faint); }
+
+  blockquote {
+    background: var(--paper-2);
+    border: 1px solid var(--rule-soft);
+    border-left: 3px solid var(--accent);
+    border-radius: 2px;
+    padding: 16px 20px; margin: 24px 0;
+    font-size: 17px; color: var(--ink-soft);
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+  blockquote strong { color: var(--ink); }
+
+  hr {
+    border: none; height: 1px; background: var(--rule-soft);
+    margin: 30px 0;
+  }
+
+  code {
+    font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+    font-size: .86em; background: var(--paper-3);
+    border: 1px solid var(--rule-soft); border-radius: 3px;
+    padding: 1px 6px;
+  }
+  pre { overflow-x: auto; background: var(--paper-2); border: 1px solid var(--rule-soft); border-radius: 3px; padding: 16px 18px; margin-bottom: 18px; }
+  pre code { background: none; border: none; padding: 0; font-size: 14px; }
+
+  /* ---- tables, set like a book's ---- */
+  .table-wrap { overflow-x: auto; margin-bottom: 20px; }
+  table { width: 100%; border-collapse: collapse; font-size: 16.5px; }
+  thead th {
+    text-align: left; font-family: 'Fraunces', serif; font-weight: 600;
+    font-size: 12px; letter-spacing: .13em; text-transform: uppercase;
+    color: var(--ink-faint); padding: 0 14px 9px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  thead th:last-child { padding-right: 0; }
+  tbody td { padding: 11px 14px 11px 0; border-bottom: 1px solid var(--rule-soft); vertical-align: top; }
+  tbody td:last-child { padding-right: 0; }
+  tbody tr:last-child td { border-bottom: none; }
+
+  em { font-style: italic; }
+  strong { font-weight: 600; }
+
+  /* ---- colophon ---- */
+  footer {
+    margin-top: 64px; padding-block: 26px 56px;
+    border-top: 1px solid var(--rule);
+    display: flex; flex-wrap: wrap; gap: 12px 24px;
+    align-items: baseline; justify-content: space-between;
+    font-size: 14.5px; color: var(--ink-faint);
+  }
+  footer nav { display: flex; gap: 20px; }
+  footer a { color: var(--ink-soft); border-bottom-color: var(--rule); }
+  footer a:hover { color: var(--ink); }
+
+  @media (max-width: 560px) {
+    body { font-size: 17px; }
+    .sheet { padding-inline: 20px; }
+    main { padding-block: 40px 0; }
+  }
+
+  @media print {
+    .running, footer nav { display: none; }
+    body { background: #fff; color: #000; font-size: 11pt; }
+    .sheet { max-width: none; }
+    h3, table, blockquote { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="running">
+  <div class="sheet">
+    <a href="https://cloudsynq.github.io/">❧ All Volumes</a>
+    <span class="vol">{{ site.volume | default: site.title }}</span>
+  </div>
+</div>
+
+<main class="sheet">
+  {{ content }}
+</main>
+
+<footer class="sheet">
+  <span>Free to read, free to share. By Sahil Kumar.</span>
+  <nav>
+    <a href="https://cloudsynq.github.io/">All volumes</a>
+    <a href="https://github.com/cloudsynq">GitHub</a>
+  </nav>
+</footer>
+
+<script>
+  // markdown tables need a scroll container on narrow screens
+  document.querySelectorAll('table').forEach(function (t) {
+    if (t.parentElement.classList.contains('table-wrap')) return;
+    var w = document.createElement('div');
+    w.className = 'table-wrap';
+    t.parentNode.insertBefore(w, t);
+    w.appendChild(t);
+  });
+</script>
+
+</body>
+</html>

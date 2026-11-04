@@ -1,3 +1,11 @@
-theme: jekyll-theme-cayman
-title: Cloud Computing — Azure (AZ-104)
-description: Theory notes, hands-on labs and syllabus · by Sahil Kumar
+title: Cloud Computing — Microsoft Azure (AZ-104)
+description: Theory notes, hands-on labs and a full syllabus for Azure Administrator (AZ-104). Free and open.
+volume: Volume Two · Azure
+accent: "#2f5a7a"
+accent_dark: "#8fb9d8"
+
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: "default"
