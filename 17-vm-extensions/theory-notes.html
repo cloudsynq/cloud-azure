@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Azure VM Extensions – Windows Lab</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+
+  :root {
+    --bg: #ffffff;
+    --fg: #1a1a1a;
+    --muted: #555;
+    --light: #f5f7fa;
+    --azure: #0067b8;
+    --azure-bg: #e9f3fb;
+    --green: #0f7b3f;
+    --green-bg: #e9f6ec;
+    --red: #b3261e;
+    --red-bg: #fdecea;
+    --amber: #8a5300;
+    --amber-bg: #fff6e5;
+    --border: #d9e1ea;
+    --code-bg: #1e1e1e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    font-size: 14px;
+    line-height: 1.7;
+    padding: 40px 32px;
+    max-width: 820px;
+    margin: 0 auto;
+  }
+
+  .header {
+    border-left: 6px solid var(--azure);
+    padding: 16px 20px;
+    background: var(--azure-bg);
+    border-radius: 0 8px 8px 0;
+    margin-bottom: 8px;
+  }
+  .header h1 { font-size: 22px; font-weight: 700; color: var(--azure); }
+  .header p { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  h2 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--azure);
+    margin: 30px 0 12px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--azure-bg);
+  }
+  h3 { font-size: 14px; font-weight: 700; margin: 20px 0 10px; }
+
+  p { margin-bottom: 10px; font-size: 13.5px; }
+  code { font-family: 'Fira Code', monospace; font-size: 12.5px; background: var(--azure-bg); color: var(--azure); padding: 1px 6px; border-radius: 3px; }
+
+  .def-box {
+    background: var(--light);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 14px;
+    font-size: 13.5px;
+  }
+  .def-box strong { color: var(--azure); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 14px; }
+  th { background: var(--azure); color: #fff; padding: 9px 13px; text-align: left; font-weight: 600; }
+  th:first-child { border-radius: 6px 0 0 0; }
+  th:last-child { border-radius: 0 6px 0 0; }
+  td { padding: 9px 13px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: var(--light); }
+  tr:last-child td { border-bottom: none; }
+
+  /* SETTINGS CARD */
+  .settings {
+    background: var(--azure-bg);
+    border: 1px solid #b8d9ef;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 14px;
+  }
+  .settings h4 { font-size: 13px; font-weight: 700; color: var(--azure); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .settings dl { display: grid; grid-template-columns: 180px 1fr; gap: 6px 12px; font-size: 13px; }
+  @media (max-width: 520px) { .settings dl { grid-template-columns: 1fr; gap: 2px; } .settings dt { margin-top: 8px; } }
+  .settings dt { color: var(--muted); }
+  .settings dd { font-weight: 600; }
+
+  /* STEPS */
+  .step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--light);
+  }
+  .step-num {
+    background: var(--azure);
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .step h4 { font-size: 13.5px; font-weight: 700; margin-bottom: 4px; }
+  .step p { font-size: 13px; color: var(--muted); margin: 0 0 4px; }
+  .step p:last-child { margin-bottom: 0; }
+  .nav { font-family: 'Fira Code', monospace; font-size: 12px; background: #fff; border: 1px solid var(--border); color: var(--azure); padding: 3px 8px; border-radius: 4px; display: inline-block; margin-top: 4px; }
+
+  /* CODE */
+  .code-wrap { margin: 12px 0 16px; }
+  .code-label { font-size: 11px; font-weight: 700; background: var(--azure); color: #fff; display: inline-block; padding: 3px 10px; border-radius: 4px 4px 0 0; text-transform: uppercase; letter-spacing: 0.5px; }
+  .code-block {
+    background: var(--code-bg);
+    color: #d4d4d4;
+    border-radius: 0 6px 6px 6px;
+    padding: 16px 18px;
+    font-family: 'Fira Code', monospace;
+    font-size: 12.5px;
+    line-height: 1.85;
+    white-space: pre;
+    overflow-x: auto;
+  }
+  .kw { color: #569cd6; }
+  .str { color: #ce9178; }
+  .cmt { color: #6a9955; }
+  .fn { color: #dcdcaa; }
+  .var { color: #9cdcfe; }
+
+  .result {
+    background: #0d1117;
+    border: 1px solid #238636;
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-family: 'Fira Code', monospace;
+    font-size: 12.5px;
+    color: #3fb950;
+    line-height: 1.8;
+    margin: 12px 0;
+    white-space: pre-wrap;
+  }
+  .result-title { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700; color: #3fb950; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+
+  /* CALLOUTS */
+  .callout { border-radius: 6px; padding: 11px 15px; font-size: 13px; margin: 12px 0; border: 1px solid; border-left-width: 4px; }
+  .callout.warn { background: var(--amber-bg); border-color: #e0a106; color: #4a3000; }
+  .callout.warn strong { color: var(--amber); }
+  .callout.stop { background: var(--red-bg); border-color: #e5564d; color: #5c1510; }
+  .callout.stop strong { color: var(--red); }
+  .callout.ok { background: var(--green-bg); border-color: #8fcfa4; color: #10401f; }
+  .callout.ok strong { color: var(--green); }
+
+  .yes { color: var(--green); font-weight: 700; }
+  .no { color: var(--red); font-weight: 700; }
+
+  hr.divider { border: none; border-top: 1px solid var(--border); margin: 30px 0; }
+
+  .footer { text-align: center; color: #8b96a3; font-size: 12px; margin-top: 36px; padding-top: 16px; border-top: 1px solid var(--border); }
+
+  /* PRINT */
+  @media print {
+    body { padding: 0; font-size: 11pt; max-width: none; }
+    .step, table, .code-wrap, .settings, .callout, .result { page-break-inside: avoid; }
+    h2, h3 { page-break-after: avoid; }
+    .code-block { background: #1e1e1e !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Azure VM Extensions — Windows Lab</h1>
+    <p>Custom Script Extension &amp; Run Command | IIMT College — Cloud Computing</p>
+  </div>
+
+  <!-- ===== THEORY ===== -->
+  <h2>1. What is a VM Extension?</h2>
+
+  <div class="def-box">
+    A <strong>VM Extension</strong> is a small software agent that runs <em>inside</em> an Azure Virtual Machine after the VM has been created. It lets you install software, run scripts, and configure the machine — <strong>without logging in through RDP or SSH</strong>.
+  </div>
+
+  <p>The VM gives you the machine. The Extension does the setup work on that machine — automatically, from the Azure Portal.</p>
+
+  <h3>Common Extension Types</h3>
+
+  <table>
+    <tr>
+      <th style="width:30%">Extension</th>
+      <th>What it does</th>
+    </tr>
+    <tr>
+      <td><strong>Custom Script Extension</strong></td>
+      <td>Runs a PowerShell script (Windows) or Bash script (Linux) on the VM. Most widely used.</td>
+    </tr>
+    <tr>
+      <td><strong>Run Command</strong></td>
+      <td>Runs a script immediately from the portal and shows the output on screen. Good for quick tasks and troubleshooting.</td>
+    </tr>
+    <tr>
+      <td><strong>VM Access Extension</strong></td>
+      <td>Resets the VM password or SSH key when you are locked out.</td>
+    </tr>
+    <tr>
+      <td><strong>Azure Monitor / Diagnostics</strong></td>
+      <td>Collects CPU, memory, disk metrics and logs from inside the VM.</td>
+    </tr>
+    <tr>
+      <td><strong>Antimalware Extension</strong></td>
+      <td>Installs and enables Microsoft Antimalware on the VM.</td>
+    </tr>
+  </table>
+
+  <hr class="divider">
+
+  <!-- ===== LAB OVERVIEW ===== -->
+  <h2>2. Lab Objective</h2>
+
+  <p>Create a Windows Server VM and install <strong>IIS Web Server</strong> on it using extensions — without ever connecting via RDP. We will do it in two ways:</p>
+
+  <table>
+    <tr>
+      <th style="width:35%">Method</th>
+      <th>Why we use it</th>
+    </tr>
+    <tr>
+      <td><strong>Part A — Run Command</strong></td>
+      <td>Runs instantly and shows output in the portal. Confirms the script itself is correct.</td>
+    </tr>
+    <tr>
+      <td><strong>Part B — Custom Script Extension</strong></td>
+      <td>The real extension. Attaches to the VM and can be reused in automation templates.</td>
+    </tr>
+  </table>
+
+  <p><strong>Estimated time:</strong> 30 minutes</p>
+
+  <!-- ===== CRITICAL SETTINGS ===== -->
+  <h2>3. VM Settings — Use Exactly These</h2>
+
+  <div class="callout stop">
+    <strong>Important:</strong> Most lab failures happen because of a wrong VM size or image. Do not use <code>B1s</code> — it has only 1 GB RAM and IIS installation fails or times out on Windows Server.
+  </div>
+
+  <div class="settings">
+    <h4>Required Configuration</h4>
+    <dl>
+      <dt>Resource Group</dt><dd>MyExtensionRG <span style="font-weight:400;color:#555">(create new)</span></dd>
+      <dt>VM Name</dt><dd>MyWinVM</dd>
+      <dt>Region</dt><dd>East US</dd>
+      <dt>Image</dt><dd>Windows Server 2022 Datacenter : Azure Edition — Gen2</dd>
+      <dt>Size</dt><dd>Standard_B2s &nbsp;(2 vCPU, 4 GB RAM)</dd>
+      <dt>Username</dt><dd>azureuser</dd>
+      <dt>Password</dt><dd>Set a strong password (12+ characters)</dd>
+      <dt>Inbound ports</dt><dd>Allow <strong>HTTP (80)</strong> and <strong>RDP (3389)</strong></dd>
+    </dl>
+  </div>
+
+  <div class="callout warn">
+    <strong>Why Port 80?</strong> IIS serves the website on port 80. If you forget to allow it, the extension will succeed but the browser will not open the page.
+  </div>
+
+  <hr class="divider">
+
+  <!-- ===== PART A ===== -->
+  <h2>4. Part A — Create the VM</h2>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div>
+      <h4>Start VM creation</h4>
+      <p>Open the Azure Portal, search for <strong>Virtual Machines</strong>, then click <strong>+ Create → Azure virtual machine</strong>.</p>
+      <span class="nav">portal.azure.com → Virtual machines → + Create</span>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">2</div>
+    <div>
+      <h4>Fill the Basics tab</h4>
+      <p>Enter all the values from the configuration table in Section 3. For <strong>Size</strong>, click "See all sizes" and search for <code>B2s</code>.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">3</div>
+    <div>
+      <h4>Allow inbound ports</h4>
+      <p>Still on the Basics tab, scroll to <strong>Inbound port rules</strong> → "Select inbound ports" → tick <strong>HTTP (80)</strong> and <strong>RDP (3389)</strong>.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">4</div>
+    <div>
+      <h4>Create the VM</h4>
+      <p>Click <strong>Review + create</strong> → <strong>Create</strong>. Deployment takes about 3–5 minutes. Wait until you see "Your deployment is complete", then click <strong>Go to resource</strong>.</p>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <strong>Wait before continuing.</strong> After deployment finishes, give the VM another 2–3 minutes to finish booting. The Azure VM Agent inside the VM must be running before any extension can work.
+  </div>
+
+  <hr class="divider">
+
+  <!-- ===== PART B: RUN COMMAND ===== -->
+  <h2>5. Part B — Method 1: Run Command</h2>
+
+  <p>This is the fastest way to run a script on a VM and see the result immediately. We use it first to confirm our script works.</p>
+
+  <div class="step">
+    <div class="step-num">5</div>
+    <div>
+      <h4>Open Run command</h4>
+      <p>In your VM's left menu, scroll to <strong>Operations</strong> → click <strong>Run command</strong>.</p>
+      <span class="nav">MyWinVM → Operations → Run command</span>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">6</div>
+    <div>
+      <h4>Select RunPowerShellScript</h4>
+      <p>From the list of commands, click <strong>RunPowerShellScript</strong>. A text box opens on the right side.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">7</div>
+    <div>
+      <h4>Paste the script and run it</h4>
+      <p>Paste the script below into the box, then click <strong>Run</strong>. It takes 1–3 minutes. The output appears directly below the box.</p>
+    </div>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-label">Script 1 — Install IIS (paste into Run command)</div>
+    <div class="code-block"><span class="cmt"># Install IIS Web Server with management tools</span>
+<span class="fn">Install-WindowsFeature</span> <span class="kw">-Name</span> Web-Server <span class="kw">-IncludeManagementTools</span>
+
+<span class="cmt"># Remove the IIS default page so our own page is shown</span>
+<span class="fn">Remove-Item</span> <span class="str">"C:\inetpub\wwwroot\iisstart.htm"</span> <span class="kw">-Force</span> <span class="kw">-ErrorAction</span> SilentlyContinue
+
+<span class="cmt"># Create our own home page</span>
+<span class="var">$page</span> = <span class="str">"&lt;html&gt;&lt;body&gt;&lt;h1&gt;Hello from Azure VM Extension&lt;/h1&gt;&lt;p&gt;IIS was installed automatically.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;"</span>
+<span class="fn">Set-Content</span> <span class="kw">-Path</span> <span class="str">"C:\inetpub\wwwroot\index.html"</span> <span class="kw">-Value</span> <span class="var">$page</span>
+
+<span class="cmt"># Print confirmation</span>
+<span class="fn">Write-Output</span> <span class="str">"IIS installation finished successfully."</span></div>
+  </div>
+
+  <div class="result">
+    <div class="result-title">Expected output in the portal</div>Success              Restart Needed    Exit Code      Feature Result
+-------              --------------    ---------      --------------
+True                 No                Success        {Web-Server, ...}
+
+IIS installation finished successfully.</div>
+
+  <div class="step">
+    <div class="step-num">8</div>
+    <div>
+      <h4>Test in the browser</h4>
+      <p>Go to <strong>MyWinVM → Overview</strong> and copy the <strong>Public IP address</strong>. Open a new browser tab and visit <code>http://&lt;your-public-ip&gt;</code>.</p>
+      <span class="nav">MyWinVM → Overview → Public IP address</span>
+    </div>
+  </div>
+
+  <div class="callout ok">
+    <strong>Checkpoint:</strong> The browser should show "Hello from Azure VM Extension". You have now configured a VM without ever using RDP.
+  </div>
+
+  <hr class="divider">
+
+  <!-- ===== PART C: CUSTOM SCRIPT EXTENSION ===== -->
+  <h2>6. Part C — Method 2: Custom Script Extension</h2>
+
+  <p>Run Command is manual and one-time. The <strong>Custom Script Extension</strong> attaches permanently to the VM and can be included in automation templates, so the same setup repeats on every new VM.</p>
+
+  <div class="callout stop">
+    <strong>Rule you must know:</strong> A VM can have only <strong>ONE</strong> Custom Script Extension at a time. If a previous attempt failed, you <strong>must delete the old extension first</strong> — otherwise every new attempt fails. This is the single most common reason this lab fails repeatedly.
+  </div>
+
+  <h3>Step 1 — Prepare the script file</h3>
+
+  <div class="step">
+    <div class="step-num">9</div>
+    <div>
+      <h4>Create install-iis.ps1 on your computer</h4>
+      <p>Open <strong>Notepad</strong>, paste the script below, then choose <strong>File → Save As</strong>.</p>
+      <p>File name: <code>install-iis.ps1</code> &nbsp;|&nbsp; Save as type: <strong>All Files</strong> &nbsp;|&nbsp; Encoding: <strong>UTF-8</strong></p>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <strong>Encoding matters.</strong> Choose plain <strong>UTF-8</strong>, not "UTF-8 with BOM". A BOM adds hidden characters at the start of the file and PowerShell fails with exit code 1. Also make sure the file is saved as <code>.ps1</code> and not <code>install-iis.ps1.txt</code>.
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-label">install-iis.ps1 — save this file</div>
+    <div class="code-block"><span class="cmt"># install-iis.ps1</span>
+<span class="cmt"># Azure Custom Script Extension - installs IIS and a custom home page</span>
+
+<span class="cmt"># Install IIS Web Server</span>
+<span class="fn">Install-WindowsFeature</span> <span class="kw">-Name</span> Web-Server <span class="kw">-IncludeManagementTools</span>
+
+<span class="cmt"># Remove IIS default page</span>
+<span class="fn">Remove-Item</span> <span class="str">"C:\inetpub\wwwroot\iisstart.htm"</span> <span class="kw">-Force</span> <span class="kw">-ErrorAction</span> SilentlyContinue
+
+<span class="cmt"># Create custom home page</span>
+<span class="var">$page</span> = <span class="str">"&lt;html&gt;&lt;body&gt;&lt;h1&gt;Deployed by Custom Script Extension&lt;/h1&gt;&lt;p&gt;Server: "</span> + <span class="var">$env:COMPUTERNAME</span> + <span class="str">"&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;"</span>
+<span class="fn">Set-Content</span> <span class="kw">-Path</span> <span class="str">"C:\inetpub\wwwroot\index.html"</span> <span class="kw">-Value</span> <span class="var">$page</span>
+
+<span class="cmt"># Write a log file we can check later</span>
+<span class="fn">Add-Content</span> <span class="kw">-Path</span> <span class="str">"C:\extension-log.txt"</span> <span class="kw">-Value</span> (<span class="str">"IIS installed at "</span> + (<span class="fn">Get-Date</span>))
+
+<span class="fn">Write-Output</span> <span class="str">"Custom Script Extension completed."</span></div>
+  </div>
+
+  <h3>Step 2 — Attach the extension</h3>
+
+  <div class="step">
+    <div class="step-num">10</div>
+    <div>
+      <h4>Open Extensions and clean up first</h4>
+      <p>Go to <strong>MyWinVM → Settings → Extensions + applications</strong>.</p>
+      <p>If a <strong>CustomScriptExtension</strong> is already listed (from a previous attempt), select it and click <strong>Uninstall</strong>. Wait until it disappears from the list before continuing.</p>
+      <span class="nav">MyWinVM → Settings → Extensions + applications</span>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">11</div>
+    <div>
+      <h4>Add the Custom Script Extension</h4>
+      <p>Click <strong>+ Add</strong> → search for and select <strong>Custom Script Extension</strong> → click <strong>Next</strong>.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">12</div>
+    <div>
+      <h4>Upload the script file</h4>
+      <p>In the <strong>Script file</strong> field, click <strong>Browse</strong> and select your <code>install-iis.ps1</code> file. Leave <strong>Arguments</strong> empty.</p>
+      <p>Click <strong>Review + create</strong> → <strong>Create</strong>.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">13</div>
+    <div>
+      <h4>Watch the status</h4>
+      <p>The status moves through <strong>Transitioning → Provisioning succeeded</strong>. This takes 2–5 minutes. Refresh the page if the status seems stuck.</p>
+    </div>
+  </div>
+
+  <h3>Step 3 — Read the extension output</h3>
+
+  <div class="step">
+    <div class="step-num">14</div>
+    <div>
+      <h4>View detailed status</h4>
+      <p>Click on <strong>CustomScriptExtension</strong> in the list, then click <strong>View detailed status</strong>. This shows the actual script output (stdout) and any error messages (stderr).</p>
+      <p>This is the screen you must check whenever an extension fails.</p>
+    </div>
+  </div>
+
+  <div class="result">
+    <div class="result-title">Expected detailed status</div>Status: Provisioning succeeded
+
+[stdout]
+Custom Script Extension completed.
+
+[stderr]
+(empty)</div>
+
+  <div class="step">
+    <div class="step-num">15</div>
+    <div>
+      <h4>Verify in the browser</h4>
+      <p>Visit <code>http://&lt;your-public-ip&gt;</code> again. The page should now read <strong>"Deployed by Custom Script Extension"</strong> and show the server name.</p>
+    </div>
+  </div>
+
+  <div class="callout ok">
+    <strong>Lab complete.</strong> You installed and configured IIS on a Windows VM twice — once with Run Command and once with the Custom Script Extension — without using RDP at any point.
+  </div>
+
+  <hr class="divider">
+
+  <!-- ===== TROUBLESHOOTING ===== -->
+  <h2>7. Troubleshooting — Why the Extension Fails</h2>
+
+  <table>
+    <tr>
+      <th style="width:32%">Symptom</th>
+      <th style="width:32%">Cause</th>
+      <th>Fix</th>
+    </tr>
+    <tr>
+      <td>Every retry fails, even after fixing the script</td>
+      <td>An old Custom Script Extension is still attached. Only one is allowed per VM.</td>
+      <td>Extensions + applications → select the old one → <strong>Uninstall</strong> → wait → add again</td>
+    </tr>
+    <tr>
+      <td>Status: Failed, "exit code 1"</td>
+      <td>Script saved with UTF-8 BOM, or saved as <code>.txt</code></td>
+      <td>Re-save in Notepad: type <strong>All Files</strong>, encoding <strong>UTF-8</strong>, name ending in <code>.ps1</code></td>
+    </tr>
+    <tr>
+      <td>Install hangs, times out, or VM becomes unresponsive</td>
+      <td>VM size too small — <code>B1s</code> has only 1 GB RAM</td>
+      <td>Resize the VM to <strong>Standard_B2s</strong> (4 GB RAM), restart, retry</td>
+    </tr>
+    <tr>
+      <td>"Install-WindowsFeature is not recognized"</td>
+      <td>Wrong image — Server Core or a Windows client image was selected</td>
+      <td>Use <strong>Windows Server 2022 Datacenter : Azure Edition (Gen2)</strong></td>
+    </tr>
+    <tr>
+      <td>Status succeeded, but browser does not load</td>
+      <td>Port 80 not allowed in the Network Security Group</td>
+      <td>VM → Networking → Add inbound rule → Port <strong>80</strong>, TCP, Allow, priority 100</td>
+    </tr>
+    <tr>
+      <td>Browser shows the blue IIS default page</td>
+      <td><code>index.html</code> was not written, or <code>iisstart.htm</code> still exists</td>
+      <td>Run Command → <code>Get-ChildItem C:\inetpub\wwwroot</code> to check which files are present</td>
+    </tr>
+    <tr>
+      <td>Status stuck on "Transitioning" for a long time</td>
+      <td>Azure VM Agent not ready — the VM is still booting</td>
+      <td>Wait 5 minutes, then restart the VM and check Boot diagnostics</td>
+    </tr>
+    <tr>
+      <td>Browser shows "connection timed out"</td>
+      <td>VM is stopped or deallocated</td>
+      <td>VM → Overview → check status is <strong>Running</strong>; click Start if needed</td>
+    </tr>
+  </table>
+
+  <div class="callout warn">
+    <strong>First thing to check, always:</strong> Extensions + applications → click the extension → <strong>View detailed status</strong>. The real error message is there. Do not guess.
+  </div>
+
+  <hr class="divider">
+
+  <!-- ===== COMPARISON ===== -->
+  <h2>8. Run Command vs Custom Script Extension</h2>
+
+  <table>
+    <tr>
+      <th style="width:34%">Feature</th>
+      <th>Run Command</th>
+      <th>Custom Script Extension</th>
+    </tr>
+    <tr>
+      <td>Output visible in portal</td>
+      <td class="yes">Yes — immediately</td>
+      <td>Only via "View detailed status"</td>
+    </tr>
+    <tr>
+      <td>Stays attached to the VM</td>
+      <td class="no">No</td>
+      <td class="yes">Yes</td>
+    </tr>
+    <tr>
+      <td>Can be reused in automation / ARM templates</td>
+      <td class="no">No</td>
+      <td class="yes">Yes</td>
+    </tr>
+    <tr>
+      <td>How many allowed per VM</td>
+      <td>Unlimited, run any number of times</td>
+      <td>Only one at a time</td>
+    </tr>
+    <tr>
+      <td>Best used for</td>
+      <td>Quick fixes and troubleshooting</td>
+      <td>Repeatable deployment configuration</td>
+    </tr>
+  </table>
+
+  <hr class="divider">
+
+  <!-- ===== SUMMARY ===== -->
+  <h2>9. Lab Summary</h2>
+
+  <table>
+    <tr>
+      <th style="width:38%">Item</th>
+      <th>Value</th>
+    </tr>
+    <tr><td>Resource Group</td><td>MyExtensionRG</td></tr>
+    <tr><td>VM Name</td><td>MyWinVM</td></tr>
+    <tr><td>Image</td><td>Windows Server 2022 Datacenter : Azure Edition (Gen2)</td></tr>
+    <tr><td>Size</td><td>Standard_B2s — 2 vCPU, 4 GB RAM</td></tr>
+    <tr><td>Open ports</td><td>80 (HTTP), 3389 (RDP)</td></tr>
+    <tr><td>Methods used</td><td>Run Command, Custom Script Extension</td></tr>
+    <tr><td>Script file</td><td>install-iis.ps1</td></tr>
+    <tr><td>Software installed</td><td>IIS Web Server + custom index.html</td></tr>
+    <tr><td>Verification</td><td>http://&lt;public-ip&gt; shows the custom page</td></tr>
+    <tr><td>Log file on VM</td><td>C:\extension-log.txt</td></tr>
+  </table>
+
+  <div class="callout stop">
+    <strong>Clean up after the lab.</strong> Delete the resource group <strong>MyExtensionRG</strong> to stop all charges: Resource groups → MyExtensionRG → Delete resource group.
+  </div>
+
+  <div class="footer">
+    IIMT College — Cloud Computing &nbsp;·&nbsp; Azure VM Extensions &nbsp;·&nbsp; Windows Server 2022
+  </div>
+
+</body>
+</html>

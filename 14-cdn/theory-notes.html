@@ -1,0 +1,326 @@
+<title>Azure CDN Theory</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg:#F8F9FA; --surface:#FFFFFF; --fg:#1A1A2E; --muted:#6B7280;
+    --accent:#0078D4; --accent2:#50E6FF; --border:#E5E7EB;
+    --code-bg:#F1F5F9; --tag-bg:#EFF6FF; --tag-fg:#1D4ED8;
+    --green:#16A34A; --amber:#D97706; --red:#DC2626;
+  }
+  @media(prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0F1117; --surface:#1E2130; --fg:#E2E8F0; --muted:#94A3B8;
+      --accent:#50E6FF; --accent2:#0078D4; --border:#2D3748;
+      --code-bg:#1A2035; --tag-bg:#1E3A5F; --tag-fg:#93C5FD;
+      --green:#4ADE80; --amber:#FCD34D; --red:#F87171;
+      color-scheme:dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0F1117; --surface:#1E2130; --fg:#E2E8F0; --muted:#94A3B8;
+    --accent:#50E6FF; --accent2:#0078D4; --border:#2D3748;
+    --code-bg:#1A2035; --tag-bg:#1E3A5F; --tag-fg:#93C5FD;
+    --green:#4ADE80; --amber:#FCD34D; --red:#F87171;
+    color-scheme:dark;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--fg);font-family:'Inter',sans-serif;font-size:14px;line-height:1.7;padding:20px 16px 60px;}
+  .wrap{max-width:820px;margin:0 auto;}
+
+  /* Header */
+  .page-header{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin-bottom:20px;}
+  .page-header .badge{display:inline-block;background:var(--tag-bg);color:var(--tag-fg);font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;margin-bottom:10px;letter-spacing:.04em;}
+  .page-header h1{font-size:22px;font-weight:700;color:var(--accent);margin-bottom:4px;}
+  .page-header .subtitle{font-size:13px;color:var(--muted);}
+
+  /* Sections */
+  .section{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin-bottom:16px;}
+  .section h2{font-size:16px;font-weight:700;color:var(--accent);margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:8px;}
+  .section h3{font-size:14px;font-weight:600;margin:14px 0 8px;color:var(--fg);}
+  .section p{margin-bottom:10px;font-size:13.5px;}
+
+  /* Analogy box */
+  .analogy{background:var(--tag-bg);border-left:4px solid var(--accent);border-radius:0 8px 8px 0;padding:12px 16px;margin:12px 0;font-size:13.5px;}
+  .analogy .label{font-weight:700;color:var(--tag-fg);font-size:12px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
+
+  /* Info boxes */
+  .info-box{border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin:12px 0;font-size:13.5px;}
+  .info-box.green{border-color:var(--green);background:color-mix(in srgb, var(--green) 8%, transparent);}
+  .info-box.amber{border-color:var(--amber);background:color-mix(in srgb, var(--amber) 8%, transparent);}
+  .info-box .box-label{font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;}
+  .info-box.green .box-label{color:var(--green);}
+  .info-box.amber .box-label{color:var(--amber);}
+
+  /* Lists */
+  ul,ol{padding-left:20px;margin:8px 0;}
+  li{margin-bottom:5px;font-size:13.5px;}
+  li strong{color:var(--fg);}
+
+  /* Diagram */
+  .diagram{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:16px;margin:14px 0;font-family:'Fira Code',monospace;font-size:12px;line-height:1.8;overflow-x:auto;white-space:pre;}
+
+  /* Table */
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px;}
+  th{background:var(--tag-bg);color:var(--tag-fg);font-weight:700;font-size:12px;padding:8px 12px;text-align:left;border:1px solid var(--border);}
+  td{padding:8px 12px;border:1px solid var(--border);vertical-align:top;}
+  tr:nth-child(even) td{background:color-mix(in srgb, var(--border) 20%, transparent);}
+
+  /* Compare cards */
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0;}
+  @media(max-width:560px){.compare{grid-template-columns:1fr;}}
+  .ccard{border:1px solid var(--border);border-radius:8px;padding:14px;}
+  .ccard .ctitle{font-weight:700;font-size:13px;margin-bottom:8px;color:var(--accent);}
+  .ccard ul{margin:0;}
+
+  /* Pop grid */
+  .pop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin:12px 0;}
+  .pop-item{background:var(--code-bg);border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center;font-size:12px;}
+  .pop-item .pop-city{font-weight:700;font-size:13px;margin-bottom:2px;}
+  .pop-item .pop-country{color:var(--muted);font-size:11px;}
+
+  .tag{display:inline-block;background:var(--tag-bg);color:var(--tag-fg);font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;margin:2px;}
+
+  footer{text-align:center;font-size:11px;color:var(--muted);margin-top:24px;padding-top:12px;border-top:1px solid var(--border);}
+</style>
+
+<div class="wrap">
+
+<div class="page-header">
+  <div class="badge">Azure Storage &amp; CDN · Theory Notes</div>
+  <h1>Azure Content Delivery Network (CDN)</h1>
+  <div class="subtitle">BCA 3rd Semester · Cloud Computing · Unit: Azure Storage Services</div>
+</div>
+
+<!-- 1. What is CDN -->
+<div class="section">
+  <h2>1. What is a CDN?</h2>
+  <p>A <strong>Content Delivery Network (CDN)</strong> is a distributed network of servers placed at multiple locations around the world. Its job is to deliver content (web pages, images, videos, files) to users <strong>faster</strong> by serving it from a server that is <strong>physically closest</strong> to them.</p>
+
+  <div class="analogy">
+    <div class="label">Analogy</div>
+    Imagine you are in Delhi and you order a book from Amazon. If Amazon sends it from a warehouse in the USA, it takes 2 weeks. But if Amazon has a warehouse in Delhi itself, it arrives the next day. CDN works the same way — it keeps a <strong>copy</strong> of your website content in data centers near your users.
+  </div>
+
+  <h3>Without CDN vs With CDN</h3>
+  <div class="compare">
+    <div class="ccard">
+      <div class="ctitle">Without CDN</div>
+      <ul>
+        <li>All users connect to ONE origin server</li>
+        <li>Users far away face high latency</li>
+        <li>Heavy load on origin server</li>
+        <li>Slow loading in other countries</li>
+        <li>No protection against traffic spikes</li>
+      </ul>
+    </div>
+    <div class="ccard">
+      <div class="ctitle">With CDN</div>
+      <ul>
+        <li>Content cached at edge servers worldwide</li>
+        <li>Users get content from nearest location</li>
+        <li>Origin server handles less traffic</li>
+        <li>Fast loading globally</li>
+        <li>Handles traffic spikes easily</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- 2. How CDN Works -->
+<div class="section">
+  <h2>2. How Does Azure CDN Work?</h2>
+
+  <h3>Key Terms</h3>
+  <ul>
+    <li><strong>Origin Server:</strong> Your actual server or Azure Storage account where files live.</li>
+    <li><strong>Edge Server / PoP:</strong> CDN server placed at a geographic location (Point of Presence). Stores cached copies of your content.</li>
+    <li><strong>Cache:</strong> Temporary copy of your content stored at the edge server.</li>
+    <li><strong>TTL (Time to Live):</strong> How long content stays cached at the edge before it is refreshed from origin.</li>
+    <li><strong>CDN Endpoint:</strong> The public URL provided by Azure CDN (e.g., <code>mysite.azureedge.net</code>) that users access.</li>
+    <li><strong>CDN Profile:</strong> Container for one or more CDN endpoints. You define the CDN provider here.</li>
+  </ul>
+
+  <h3>Request Flow</h3>
+  <div class="diagram">User (Mumbai) requests mysite.azureedge.net/image.jpg
+        │
+        ▼
+  Azure CDN routes to nearest PoP
+  (e.g., Mumbai PoP server)
+        │
+        ├─ CACHE HIT? → Serve directly from PoP ✓ (fast, ~5ms)
+        │
+        └─ CACHE MISS? → Fetch from Origin (Azure Storage)
+                          → Store copy at PoP
+                          → Serve to user ✓ (first request only is slow)</div>
+
+  <div class="info-box green">
+    <div class="box-label">Cache Hit</div>
+    Content already stored at the edge server. Served instantly. No request goes to origin. This is the ideal case.
+  </div>
+  <div class="info-box amber">
+    <div class="box-label">Cache Miss</div>
+    Content not yet at edge. CDN fetches from origin, caches it, then serves user. Happens only on the <strong>first request</strong> after cache expires.
+  </div>
+</div>
+
+<!-- 3. Azure CDN Tiers -->
+<div class="section">
+  <h2>3. Azure CDN — Profiles &amp; Tiers</h2>
+  <p>When you create an Azure CDN Profile, you choose a <strong>provider</strong>. Each provider has different features and pricing.</p>
+
+  <table>
+    <thead><tr><th>Profile Type</th><th>Provider</th><th>Best For</th><th>Key Features</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Azure CDN Standard from Microsoft</strong></td><td>Microsoft</td><td>General web content, static sites</td><td>Basic caching, HTTPS, custom domain, compression</td></tr>
+      <tr><td><strong>Azure CDN Standard from Akamai</strong></td><td>Akamai</td><td>Media streaming, fast propagation</td><td>Fast cache propagation (~1 min), media optimization</td></tr>
+      <tr><td><strong>Azure CDN Standard from Verizon</strong></td><td>Verizon</td><td>Advanced rules, analytics</td><td>Real-time analytics, advanced rules engine</td></tr>
+      <tr><td><strong>Azure CDN Premium from Verizon</strong></td><td>Verizon Premium</td><td>Enterprise, advanced security</td><td>All Standard + token authentication, advanced analytics</td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-box amber">
+    <div class="box-label">For Labs / Students</div>
+    Use <strong>Azure CDN Standard from Microsoft</strong> — it is the simplest, cheapest, and sufficient for learning static website CDN.
+  </div>
+</div>
+
+<!-- 4. Azure CDN Features -->
+<div class="section">
+  <h2>4. Azure CDN Key Features</h2>
+
+  <h3>Caching Rules</h3>
+  <p>You can control how long CDN caches your content using <strong>TTL (Time to Live)</strong>:</p>
+  <ul>
+    <li><strong>Global caching rule:</strong> Applies to all URLs on the endpoint.</li>
+    <li><strong>Custom caching rule:</strong> Different TTL for specific file types (e.g., cache images for 7 days, HTML for 1 hour).</li>
+    <li><strong>Query string caching:</strong> Cache differently based on URL query parameters.</li>
+  </ul>
+
+  <h3>HTTPS Support</h3>
+  <p>Azure CDN provides a <strong>free TLS/SSL certificate</strong> for CDN endpoints (*.azureedge.net). You can also bring your own custom domain with HTTPS.</p>
+
+  <h3>Custom Domain</h3>
+  <p>Instead of <code>mysite.azureedge.net</code>, you can use your own domain like <code>www.mycompany.com</code> by adding a CNAME record in your DNS.</p>
+
+  <h3>Compression</h3>
+  <p>Azure CDN can automatically <strong>compress files</strong> (gzip/brotli) before sending them to users. This reduces file size by 50–70%, making pages load faster.</p>
+
+  <h3>Geo-Filtering</h3>
+  <p>Block or allow content delivery to specific countries. Useful for legal or licensing reasons.</p>
+
+  <h3>Purge (Cache Invalidation)</h3>
+  <p>When you update your website files, old cached content may still be served. You can <strong>purge</strong> (forcefully delete) the cache so CDN fetches the latest version from origin.</p>
+</div>
+
+<!-- 5. PoP Locations -->
+<div class="section">
+  <h2>5. Azure CDN — Points of Presence (PoP)</h2>
+  <p>Azure CDN has <strong>120+ PoP locations</strong> across the world. Some major ones:</p>
+  <div class="pop-grid">
+    <div class="pop-item"><div class="pop-city">Mumbai</div><div class="pop-country">India</div></div>
+    <div class="pop-item"><div class="pop-city">Chennai</div><div class="pop-country">India</div></div>
+    <div class="pop-item"><div class="pop-city">Singapore</div><div class="pop-country">Singapore</div></div>
+    <div class="pop-item"><div class="pop-city">Tokyo</div><div class="pop-country">Japan</div></div>
+    <div class="pop-item"><div class="pop-city">Sydney</div><div class="pop-country">Australia</div></div>
+    <div class="pop-item"><div class="pop-city">London</div><div class="pop-country">UK</div></div>
+    <div class="pop-item"><div class="pop-city">Frankfurt</div><div class="pop-country">Germany</div></div>
+    <div class="pop-item"><div class="pop-city">New York</div><div class="pop-country">USA</div></div>
+    <div class="pop-item"><div class="pop-city">São Paulo</div><div class="pop-country">Brazil</div></div>
+    <div class="pop-item"><div class="pop-city">Dubai</div><div class="pop-country">UAE</div></div>
+  </div>
+  <p>When a user in Mumbai opens your website, Azure CDN serves from the <strong>Mumbai PoP</strong> — not from your storage account in East US. Result: much faster load time.</p>
+</div>
+
+<!-- 6. Static Website + CDN -->
+<div class="section">
+  <h2>6. Azure Storage Static Website + CDN</h2>
+  <p>The most common beginner use case is combining <strong>Azure Blob Static Website</strong> with <strong>Azure CDN</strong>:</p>
+
+  <div class="diagram">Azure Blob Storage
+  ┌─────────────────────────────────┐
+  │  Static Website: ENABLED        │
+  │  Primary endpoint:              │
+  │  https://xyz.z13.web.core...    │  ← Origin
+  │                                 │
+  │  $web container                 │
+  │  ├── index.html                 │
+  │  ├── style.css                  │
+  │  └── logo.png                   │
+  └─────────────────────────────────┘
+              │
+              ▼ CDN pulls from here
+  ┌─────────────────────────────────┐
+  │  Azure CDN Profile              │
+  │  CDN Endpoint: mysite.azureedge.net │
+  │  Origin = Static Website URL    │
+  └─────────────────────────────────┘
+              │
+     ┌────────┴────────┐
+     ▼                 ▼
+  Mumbai PoP      London PoP
+  (serves India)  (serves Europe)</div>
+
+  <h3>Why add CDN to a static website?</h3>
+  <ul>
+    <li>Static website URL is region-specific (e.g., East US only). CDN makes it global.</li>
+    <li>CDN provides <strong>free HTTPS</strong> — static website HTTP can be upgraded.</li>
+    <li>CDN reduces load on storage account during traffic spikes.</li>
+    <li>CDN provides better performance metrics and analytics.</li>
+    <li>Custom domain support is easier with CDN endpoint.</li>
+  </ul>
+</div>
+
+<!-- 7. Use Cases -->
+<div class="section">
+  <h2>7. Real-World Use Cases</h2>
+  <table>
+    <thead><tr><th>Use Case</th><th>Without CDN</th><th>With Azure CDN</th></tr></thead>
+    <tbody>
+      <tr><td>Company website (global users)</td><td>Slow in distant countries</td><td>Fast everywhere</td></tr>
+      <tr><td>E-commerce product images</td><td>Images load slowly</td><td>Images cached at edge, instant load</td></tr>
+      <tr><td>Video streaming platform</td><td>Buffering for far users</td><td>Smooth streaming from nearest PoP</td></tr>
+      <tr><td>News website (viral article)</td><td>Server crashes on traffic spike</td><td>CDN absorbs spike, origin safe</td></tr>
+      <tr><td>Mobile app assets (APK/icons)</td><td>Slow downloads globally</td><td>Fast downloads from nearest location</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- 8. Key Terms Summary -->
+<div class="section">
+  <h2>8. Key Terms Summary</h2>
+  <table>
+    <thead><tr><th>Term</th><th>Full Form</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><strong>CDN</strong></td><td>Content Delivery Network</td><td>Distributed network of servers for fast content delivery</td></tr>
+      <tr><td><strong>PoP</strong></td><td>Point of Presence</td><td>CDN server at a specific geographic location</td></tr>
+      <tr><td><strong>TTL</strong></td><td>Time to Live</td><td>Duration content stays cached at edge</td></tr>
+      <tr><td><strong>Origin</strong></td><td>—</td><td>Source server where original files live (e.g. Azure Storage)</td></tr>
+      <tr><td><strong>Edge Server</strong></td><td>—</td><td>CDN server at a PoP that serves cached content</td></tr>
+      <tr><td><strong>Cache Hit</strong></td><td>—</td><td>Content found at edge — served instantly</td></tr>
+      <tr><td><strong>Cache Miss</strong></td><td>—</td><td>Content not at edge — fetched from origin</td></tr>
+      <tr><td><strong>Purge</strong></td><td>—</td><td>Force CDN to delete cached content and re-fetch</td></tr>
+      <tr><td><strong>CNAME</strong></td><td>Canonical Name</td><td>DNS record to map custom domain to CDN endpoint</td></tr>
+      <tr><td><strong>Endpoint</strong></td><td>—</td><td>CDN URL assigned to your content (*.azureedge.net)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- 9. MCQ / Important Points -->
+<div class="section">
+  <h2>9. Important Exam Points</h2>
+  <ul>
+    <li>CDN stores <strong>cached copies</strong> at edge servers — not the original files.</li>
+    <li>The original file location is called the <strong>origin</strong>.</li>
+    <li>CDN reduces latency because it serves from the <strong>nearest PoP</strong>.</li>
+    <li>If content changes at origin, old cache still serves until TTL expires or you <strong>purge</strong>.</li>
+    <li>Azure CDN Standard from Microsoft is the default choice for static websites.</li>
+    <li>CDN endpoint URL format: <code>https://&lt;endpoint-name&gt;.azureedge.net</code></li>
+    <li>Static website origin URL (not the blob URL, but the web endpoint): <code>https://&lt;account&gt;.z13.web.core.windows.net</code></li>
+    <li>CDN helps with <strong>HTTPS</strong> for custom domains on Azure Static Websites.</li>
+    <li>Purge = force refresh; does NOT delete files from origin — only clears edge cache.</li>
+    <li>CDN charges are based on <strong>data transfer out</strong> from PoP locations.</li>
+  </ul>
+</div>
+
+<footer>Azure CDN Theory Notes · AZ-104 · BCA 3rd Semester · Cloud Computing with Microsoft Azure</footer>
+</div>

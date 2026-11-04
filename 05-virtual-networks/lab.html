@@ -1,0 +1,335 @@
+<title>Azure VNet — Complete Lab</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap">
+<style>
+  :root{--bg:#F0F6FF;--surface:#fff;--fg:#0D1E34;--muted:#4A6080;--accent:#0078D4;--border:#D0E3F5;--code-bg:#0A2540;--code-fg:#A8D8FF;--tag-bg:#EFF6FF;--tag-fg:#1D4ED8;--green:#107C10;--amber:#D97706;--red:#C50F1F;}
+  @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#07111F;--surface:#0C1D33;--fg:#D0E6F8;--muted:#7090B0;--accent:#4BA3E8;--border:#1A3050;--tag-bg:#0A2040;--tag-fg:#93C5FD;--green:#6CCB5F;--amber:#FCD34D;--red:#F47474;color-scheme:dark;}}
+  :root[data-theme="dark"]{--bg:#07111F;--surface:#0C1D33;--fg:#D0E6F8;--muted:#7090B0;--accent:#4BA3E8;--border:#1A3050;--tag-bg:#0A2040;--tag-fg:#93C5FD;--green:#6CCB5F;--amber:#FCD34D;--red:#F47474;color-scheme:dark;}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--fg);font-family:'Inter',sans-serif;font-size:14px;line-height:1.7;padding:20px 16px 60px;}
+  .wrap{max-width:860px;margin:0 auto;}
+  .hero{background:linear-gradient(135deg,#0A2540 0%,#003A75 100%);border-radius:14px;padding:32px;margin-bottom:20px;color:#fff;}
+  .hero .badge{background:rgba(255,255,255,.15);display:inline-block;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;margin-bottom:10px;letter-spacing:.04em;}
+  .hero h1{font-size:22px;font-weight:700;margin-bottom:4px;}
+  .hero .sub{font-size:13px;opacity:.7;}
+  .arch{background:var(--code-bg);color:var(--code-fg);border-radius:10px;padding:18px;margin:16px 0;font-family:'Fira Code',monospace;font-size:12px;line-height:1.9;overflow-x:auto;white-space:pre;}
+  .section{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin-bottom:14px;}
+  .section h2{font-size:15px;font-weight:700;color:var(--accent);margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--border);}
+  .section h3{font-size:13.5px;font-weight:600;margin:14px 0 7px;}
+  .section p{font-size:13.5px;margin-bottom:9px;}
+  ul,ol{padding-left:20px;margin:8px 0;}li{margin-bottom:5px;font-size:13.5px;}
+  .phase{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:14px;}
+  .phead{padding:12px 20px;display:flex;align-items:center;gap:12px;}
+  .phead .num{background:rgba(255,255,255,.25);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0;}
+  .phead .ptitle{font-weight:700;font-size:14px;color:#fff;}
+  .phead .psub{font-size:12px;color:rgba(255,255,255,.8);}
+  .pbody{padding:16px 20px;}
+  .step{display:flex;gap:12px;margin-bottom:14px;}.step:last-child{margin-bottom:0;}
+  .snum{background:var(--tag-bg);color:var(--tag-fg);width:24px;height:24px;border-radius:50%;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+  .scontent{flex:1;min-width:0;}.scontent .stitle{font-weight:600;font-size:13.5px;margin-bottom:4px;}
+  .scontent p,.scontent li{font-size:13px;}
+  .code{background:var(--code-bg);color:var(--code-fg);border-radius:8px;padding:12px 14px;margin:8px 0;font-family:'Fira Code',monospace;font-size:12px;line-height:1.7;overflow-x:auto;white-space:pre;}
+  .note{border-left:4px solid var(--accent);background:var(--tag-bg);border-radius:0 8px 8px 0;padding:9px 13px;margin:8px 0;font-size:13px;}
+  .note .nl{font-weight:700;font-size:11px;text-transform:uppercase;color:var(--tag-fg);margin-bottom:2px;}
+  .ok{border-left:4px solid var(--green);background:color-mix(in srgb,var(--green) 10%,transparent);border-radius:0 8px 8px 0;padding:9px 13px;margin:8px 0;font-size:13px;}
+  .ok .nl{font-weight:700;font-size:11px;text-transform:uppercase;color:var(--green);margin-bottom:2px;}
+  .warn{border-left:4px solid var(--amber);background:color-mix(in srgb,var(--amber) 10%,transparent);border-radius:0 8px 8px 0;padding:9px 13px;margin:8px 0;font-size:13px;}
+  .warn .nl{font-weight:700;font-size:11px;text-transform:uppercase;color:var(--amber);margin-bottom:2px;}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px;}
+  th{background:var(--tag-bg);color:var(--tag-fg);font-weight:700;font-size:12px;padding:8px 12px;text-align:left;border:1px solid var(--border);}
+  td{padding:7px 12px;border:1px solid var(--border);}
+  tr:nth-child(even) td{background:color-mix(in srgb,var(--border) 20%,transparent);}
+  .tag{display:inline-block;background:var(--tag-bg);color:var(--tag-fg);font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px;margin:2px;}
+  footer{text-align:center;font-size:11px;color:var(--muted);margin-top:24px;padding-top:12px;border-top:1px solid var(--border);}
+</style>
+<div class="wrap">
+<div class="hero">
+  <div class="badge">Azure VNet · Complete Practical Lab</div>
+  <h1>Azure Virtual Networks — Hands-On Lab</h1>
+  <div class="sub">BCA 3rd Semester · Cloud Computing · Public Subnet + Private Subnet + NSG + Bastion</div>
+</div>
+
+<!-- Architecture we'll build -->
+<div class="section">
+  <h2>What We'll Build Today</h2>
+  <div class="arch">  Resource Group: rg-vnet-lab
+  └── VNet: MyVNet (10.0.0.0/16)
+       ├── Public-Subnet  (10.0.1.0/24)
+       │    ├── VM-Public  (Public IP: 20.x.x.x)  ← SSH from Internet
+       │    └── NSG-Public  (Allow: SSH 22, HTTP 80)
+       │
+       └── Private-Subnet (10.0.2.0/24)
+            ├── VM-Private  (No Public IP)  ← Only reachable from VM-Public
+            └── NSG-Private (Allow: SSH 22 from VNet only)
+
+  Internet → VM-Public (20.x.x.x) → VM-Private (10.0.2.x)
+                                       (private IP only)</div>
+  <p><strong>Kya sikhenge:</strong> VNet creation, Subnets (public/private), IP addressing, NSG inbound/outbound rules, VM deployment in specific subnet, private connectivity testing, Azure Bastion.</p>
+</div>
+
+<!-- Phase 1: Resource Group + VNet -->
+<div class="phase">
+  <div class="phead" style="background:#0078D4;">
+    <div class="num">1</div>
+    <div><div class="ptitle">Resource Group &amp; VNet Create karo</div><div class="psub">~10 min · Azure Portal</div></div>
+  </div>
+  <div class="pbody">
+    <div class="step">
+      <div class="snum">1</div>
+      <div class="scontent">
+        <div class="stitle">Resource Group banao</div>
+        <p>Portal → <strong>Resource groups</strong> → Create → Name: <code>rg-vnet-lab</code> → Region: <strong>Central India</strong> → Create</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="snum">2</div>
+      <div class="scontent">
+        <div class="stitle">VNet Create karo</div>
+        <p>Search → <strong>Virtual networks</strong> → Create</p>
+        <table>
+          <tr><th>Field</th><th>Value</th></tr>
+          <tr><td>Name</td><td>MyVNet</td></tr>
+          <tr><td>Resource Group</td><td>rg-vnet-lab</td></tr>
+          <tr><td>Region</td><td>Central India</td></tr>
+          <tr><td>Address space</td><td><strong>10.0.0.0/16</strong> (65,536 IPs)</td></tr>
+        </table>
+        <div class="note"><div class="nl">Address Space kya hai?</div>10.0.0.0/16 matlab pehle 2 octets fixed (10.0) aur baaki 65,536 IP addresses available. Iske andar hum subnets banaenge.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="snum">3</div>
+      <div class="scontent">
+        <div class="stitle">Default subnet delete karo, do nayi banao</div>
+        <p>VNet create ke time <strong>IP Addresses tab</strong> mein jaao → default subnet delete karo → <strong>+ Add subnet</strong>:</p>
+        <table>
+          <tr><th>Subnet Name</th><th>Address Range</th><th>Type</th></tr>
+          <tr><td>Public-Subnet</td><td>10.0.1.0/24 (256 IPs)</td><td>Internet-accessible VMs</td></tr>
+          <tr><td>Private-Subnet</td><td>10.0.2.0/24 (256 IPs)</td><td>Internal VMs only</td></tr>
+        </table>
+        <div class="note"><div class="nl">Subnet kya karta hai?</div>VNet ko chhote pieces mein divide karta hai. Public subnet mein woh VMs jate hain jinhein internet access chahiye. Private subnet mein woh jate hain jo sirf andar se accessible hone chahiye (database, backend).</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Phase 2: NSG -->
+<div class="phase">
+  <div class="phead" style="background:#107C10;">
+    <div class="num">2</div>
+    <div><div class="ptitle">NSG — Network Security Group banao</div><div class="psub">~10 min · Firewall rules likhna</div></div>
+  </div>
+  <div class="pbody">
+    <div class="step">
+      <div class="snum">1</div>
+      <div class="scontent">
+        <div class="stitle">NSG for Public Subnet</div>
+        <p>Search → <strong>Network security groups</strong> → Create → Name: <code>NSG-Public</code> → rg-vnet-lab → Central India → Create</p>
+        <p>NSG open karo → <strong>Inbound security rules</strong> → + Add:</p>
+        <table>
+          <tr><th>Rule</th><th>Source</th><th>Port</th><th>Protocol</th><th>Action</th><th>Priority</th></tr>
+          <tr><td>Allow-SSH</td><td>Any</td><td>22</td><td>TCP</td><td>Allow</td><td>100</td></tr>
+          <tr><td>Allow-HTTP</td><td>Any</td><td>80</td><td>TCP</td><td>Allow</td><td>110</td></tr>
+        </table>
+        <div class="note"><div class="nl">Priority kya hai?</div>Chhota number = higher priority. Rule 100 pehle apply hoga rule 200 se. Default deny-all rule ka priority 65500 hota hai — sab kuch automatically block rahega jo tune allow nahi kiya.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="snum">2</div>
+      <div class="scontent">
+        <div class="stitle">NSG for Private Subnet</div>
+        <p>NSG create karo: Name: <code>NSG-Private</code> → Inbound rule add karo:</p>
+        <table>
+          <tr><th>Rule</th><th>Source</th><th>Port</th><th>Action</th><th>Priority</th></tr>
+          <tr><td>Allow-SSH-from-VNet</td><td>VirtualNetwork</td><td>22</td><td>Allow</td><td>100</td></tr>
+        </table>
+        <div class="note"><div class="nl">Source = VirtualNetwork</div>Iska matlab sirf VNet ke andar se SSH allow hai — internet se koi directly private VM ko access nahi kar sakta. Yahi public aur private subnet ka fark hai!</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="snum">3</div>
+      <div class="scontent">
+        <div class="stitle">NSG ko Subnet se associate karo</div>
+        <p><strong>NSG-Public</strong> open karo → <strong>Subnets</strong> → Associate → MyVNet → <strong>Public-Subnet</strong></p>
+        <p><strong>NSG-Private</strong> open karo → <strong>Subnets</strong> → Associate → MyVNet → <strong>Private-Subnet</strong></p>
+        <div class="ok"><div class="nl">Done!</div>Ab NSG ke rules automatically subnet ke saare VMs pe apply honge.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Phase 3: VMs -->
+<div class="phase">
+  <div class="phead" style="background:#5C2D91;">
+    <div class="num">3</div>
+    <div><div class="ptitle">Do VMs Deploy karo — Public &amp; Private</div><div class="psub">~15 min</div></div>
+  </div>
+  <div class="pbody">
+    <div class="step">
+      <div class="snum">1</div>
+      <div class="scontent">
+        <div class="stitle">VM-Public — Public Subnet mein</div>
+        <p>Virtual machines → Create → Azure virtual machine:</p>
+        <table>
+          <tr><th>Field</th><th>Value</th></tr>
+          <tr><td>Name</td><td>VM-Public</td></tr>
+          <tr><td>Region</td><td>Central India</td></tr>
+          <tr><td>Image</td><td>Ubuntu 22.04</td></tr>
+          <tr><td>Size</td><td>B1s (Free tier)</td></tr>
+          <tr><td>Auth</td><td>Password: set karo (note kar lo)</td></tr>
+          <tr><td><strong>VNet</strong></td><td><strong>MyVNet</strong></td></tr>
+          <tr><td><strong>Subnet</strong></td><td><strong>Public-Subnet</strong></td></tr>
+          <tr><td><strong>Public IP</strong></td><td><strong>Create new → Static</strong></td></tr>
+          <tr><td>NSG</td><td>None (already attached to subnet)</td></tr>
+        </table>
+        <p>Create → Wait for deployment.</p>
+        <div class="ok"><div class="nl">Public IP note karo</div>VM create hone ke baad Overview mein <strong>Public IP address</strong> dikhega (e.g. 20.204.x.x). Yahi se SSH karoge.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="snum">2</div>
+      <div class="scontent">
+        <div class="stitle">VM-Private — Private Subnet mein</div>
+        <p>Exactly same steps, lekin:</p>
+        <table>
+          <tr><th>Field</th><th>Value</th></tr>
+          <tr><td>Name</td><td>VM-Private</td></tr>
+          <tr><td>Subnet</td><td><strong>Private-Subnet</strong></td></tr>
+          <tr><td><strong>Public IP</strong></td><td><strong>None</strong> ← important!</td></tr>
+        </table>
+        <div class="warn"><div class="nl">No Public IP!</div>Private VM ko public IP nahi dena — iska sirf private IP hoga (10.0.2.x). Internet se directly accessible nahi hoga.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Phase 4: Test Connectivity -->
+<div class="phase">
+  <div class="phead" style="background:#CA5010;">
+    <div class="num">4</div>
+    <div><div class="ptitle">Connectivity Test karo</div><div class="psub">~10 min · SSH se prove karo</div></div>
+  </div>
+  <div class="pbody">
+    <div class="step">
+      <div class="snum">1</div>
+      <div class="scontent">
+        <div class="stitle">Public VM mein SSH karo (internet se)</div>
+        <div class="code">ssh azureuser@&lt;VM-Public-IP&gt;
+# Example:
+ssh azureuser@20.204.55.100</div>
+        <div class="ok"><div class="nl">Connected!</div>Public VM internet se accessible hai — NSG ne port 22 allow kiya tha.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="snum">2</div>
+      <div class="scontent">
+        <div class="stitle">Private VM ka Private IP pata karo</div>
+        <p>Portal mein VM-Private jaao → Overview → <strong>Private IP address</strong> note karo (10.0.2.x)</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="snum">3</div>
+      <div class="scontent">
+        <div class="stitle">Public VM se Private VM ko SSH karo (private IP use karo)</div>
+        <p>Public VM ke terminal mein (abhi bhi connected ho):</p>
+        <div class="code">ping 10.0.2.4        # private VM ko ping karo → reply aayega!
+ssh azureuser@10.0.2.4   # private VM mein login karo</div>
+        <div class="ok"><div class="nl">Key Learning!</div>Public VM → Private VM: WORKS (same VNet mein hain)<br>Internet → Private VM directly: BLOCKED (no public IP + NSG restricts to VirtualNetwork only)</div>
+        <div class="warn"><div class="nl">Internet se test karo</div>Apne laptop se directly <code>ssh azureuser@10.0.2.4</code> try karo → Connection refused/timeout — private VM internet se accessible nahi hai!</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="snum">4</div>
+      <div class="scontent">
+        <div class="stitle">Hostname se ping karo (Azure DNS test)</div>
+        <p>VM-Public ke terminal se:</p>
+        <div class="code">ping vm-private.internal.cloudapp.net    # Azure DNS auto-resolves this
+# ya simply:
+nslookup vm-private   # private DNS naam resolve hoga</div>
+        <div class="note"><div class="nl">Azure DNS</div>Azure automatically same VNet ke VMs ko ek-dusre ke naam se resolve kar deta hai — manually kuch configure nahi karna padta. Yahi Azure DNS hai.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Phase 5: Bastion Bonus -->
+<div class="phase">
+  <div class="phead" style="background:#004B50;">
+    <div class="num">5</div>
+    <div><div class="ptitle">Bonus: Azure Bastion — Secure SSH without Port 22</div><div class="psub">Optional · ~10 min</div></div>
+  </div>
+  <div class="pbody">
+    <p><strong>Problem:</strong> Port 22 khula rakhna risky hai. Bastion ek managed jump server hai jo browser se directly SSH karta hai — port 22 internet ke liye band kar sakte ho.</p>
+    <div class="step">
+      <div class="snum">1</div>
+      <div class="scontent">
+        <div class="stitle">AzureBastionSubnet banao</div>
+        <p>MyVNet → Subnets → + Subnet → Name: <strong>AzureBastionSubnet</strong> (exact name chahiye) → Range: <strong>10.0.3.0/26</strong> → Save</p>
+        <div class="note"><div class="nl">Important</div>Subnet ka naam exactly <code>AzureBastionSubnet</code> hona chahiye — kuch aur naam nahi chalega.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="snum">2</div>
+      <div class="scontent">
+        <div class="stitle">Bastion Deploy karo</div>
+        <p>Search → <strong>Bastions</strong> → Create → rg-vnet-lab → MyVNet → Create new Public IP → Create</p>
+        <p>(10-15 min lagta hai deploy hone mein)</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="snum">3</div>
+      <div class="scontent">
+        <div class="stitle">Bastion se VM Connect karo</div>
+        <p>VM-Private jaao → <strong>Connect → Bastion</strong> → Username + Password → Connect → Browser mein terminal khul jaayega!</p>
+        <div class="ok"><div class="nl">Result</div>Private VM mein connect ho gaye — bina port 22 khole, bina public IP ke! Yahi Bastion ka fayda hai.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NSG Concept Table -->
+<div class="section">
+  <h2>NSG Rules — Quick Reference</h2>
+  <table>
+    <tr><th>Property</th><th>Description</th><th>Example</th></tr>
+    <tr><td>Priority</td><td>Lower = higher priority (100–4096)</td><td>100 runs before 200</td></tr>
+    <tr><td>Source</td><td>Where traffic comes from</td><td>Any, IP, VirtualNetwork, Internet</td></tr>
+    <tr><td>Destination Port</td><td>Which port to allow/deny</td><td>22 (SSH), 80 (HTTP), 443 (HTTPS), * (all)</td></tr>
+    <tr><td>Protocol</td><td>TCP, UDP, ICMP, or Any</td><td>TCP for SSH/HTTP</td></tr>
+    <tr><td>Action</td><td>Allow or Deny</td><td>Allow</td></tr>
+  </table>
+  <h3>Default Rules (cannot delete, always present)</h3>
+  <table>
+    <tr><th>Rule</th><th>Priority</th><th>What it does</th></tr>
+    <tr><td>AllowVnetInBound</td><td>65000</td><td>VNet ke andar sab allow</td></tr>
+    <tr><td>AllowAzureLoadBalancerInBound</td><td>65001</td><td>Azure LB allow</td></tr>
+    <tr><td><strong>DenyAllInBound</strong></td><td><strong>65500</strong></td><td><strong>Baaki sab block</strong></td></tr>
+  </table>
+</div>
+
+<!-- Cleanup -->
+<div class="section">
+  <h2>Cleanup (Lab ke baad)</h2>
+  <p>Sab resources delete karne ke liye sirf Resource Group delete karo — andar sab kuch automatically delete ho jaayega:</p>
+  <div class="code">az group delete --name rg-vnet-lab --yes --no-wait</div>
+  <p>Ya Portal se: Resource groups → rg-vnet-lab → Delete resource group → Confirm</p>
+  <div class="warn"><div class="nl">Cost Warning</div>VM running rakhoge to charges lagte rahenge. Lab ke baad turant delete karo ya deallocate karo (Stop karo VM ko).</div>
+</div>
+
+<!-- Exam Points -->
+<div class="section">
+  <h2>Exam Points — Ye zaroor yaad rakho</h2>
+  <ul>
+    <li>VNet = Azure ka apna private network. Internet se isolated by default.</li>
+    <li>Address Space: VNet ka total IP range (e.g. 10.0.0.0/16 = 65,536 IPs).</li>
+    <li>Subnet: VNet ka chhota hissa. Ek subnet ek zone jaisa hai.</li>
+    <li>Public Subnet: Public IP wale VMs. Internet-facing.</li>
+    <li>Private Subnet: No public IP. Sirf VNet ke andar se accessible.</li>
+    <li>NSG: Firewall rules. Inbound (aane wali traffic) + Outbound (jaane wali traffic).</li>
+    <li>NSG priority: chhota number = pehle apply. 65500 = deny all (default last rule).</li>
+    <li>Azure DNS: Same VNet ke VMs automatically ek-dusre ko naam se resolve kar sakte hain.</li>
+    <li>Azure Bastion: Port 22 khole bina browser se secure SSH. AzureBastionSubnet zaruri hai.</li>
+    <li>Same VNet ke VMs ek-dusre se private IP se communicate kar sakte hain.</li>
+  </ul>
+</div>
+
+<footer>Azure VNet Complete Lab · BCA 3rd Semester · Cloud Computing with Microsoft Azure</footer>
+</div>

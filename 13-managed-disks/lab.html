@@ -1,0 +1,402 @@
+<title>Azure Managed Disk Notes</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+
+<style>
+  /* Layout: single-column doc with sticky TOC on wide screens */
+  :root {
+    --bg: #F7F8FA;
+    --card: #FFFFFF;
+    --fg: #1A1D23;
+    --fg2: #5A6070;
+    --azure: #0078D4;
+    --azure-lt: #EBF4FC;
+    --azure-dk: #004A94;
+    --green: #107C10;
+    --green-lt: #EBF5EB;
+    --orange: #D83B01;
+    --orange-lt: #FFF4EF;
+    --yellow: #FFF4CE;
+    --yellow-bd: #F0C808;
+    --code-bg: #1E2230;
+    --code-fg: #CDD6F4;
+    --border: #DDE1E9;
+    --radius: 8px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0F1117; --card: #1A1D27; --fg: #E4E8F0; --fg2: #8B92A5;
+      --azure: #4DA3E8; --azure-lt: #0D2540; --azure-dk: #7EC8FF;
+      --green: #4CAF50; --green-lt: #0D2A0D;
+      --orange: #FF8C42; --orange-lt: #2A1200;
+      --yellow: #2A2200; --yellow-bd: #C9A800;
+      --border: #2D3244; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0F1117; --card: #1A1D27; --fg: #E4E8F0; --fg2: #8B92A5;
+    --azure: #4DA3E8; --azure-lt: #0D2540; --azure-dk: #7EC8FF;
+    --green: #4CAF50; --green-lt: #0D2A0D;
+    --orange: #FF8C42; --orange-lt: #2A1200;
+    --yellow: #2A2200; --yellow-bd: #C9A800;
+    --border: #2D3244; color-scheme: dark;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+    padding-inline: 20px;
+    padding-block: 32px 64px;
+  }
+
+  .page { max-width: 780px; margin: 0 auto; display: flex; flex-direction: column; gap: 36px; }
+
+  /* Header */
+  .doc-header {
+    border-left: 4px solid var(--azure);
+    padding-left: 20px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .doc-eyebrow {
+    font-size: 11px; font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--azure);
+  }
+  .doc-title { font-size: 28px; font-weight: 700; line-height: 1.2; text-wrap: balance; }
+  .doc-sub { font-size: 14px; color: var(--fg2); }
+
+  /* Section */
+  section { display: flex; flex-direction: column; gap: 16px; }
+  h2 {
+    font-size: 18px; font-weight: 700; color: var(--fg);
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+    text-wrap: balance;
+  }
+  h3 { font-size: 15px; font-weight: 600; color: var(--azure); margin-top: 4px; }
+  p { color: var(--fg); max-width: 65ch; }
+
+  /* Callout boxes */
+  .box {
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    display: flex; flex-direction: column; gap: 6px;
+    border: 1px solid;
+  }
+  .box-label {
+    font-size: 10px; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  .box.info { background: var(--azure-lt); border-color: var(--azure); }
+  .box.info .box-label { color: var(--azure); }
+  .box.success { background: var(--green-lt); border-color: var(--green); }
+  .box.success .box-label { color: var(--green); }
+  .box.warn { background: var(--yellow); border-color: var(--yellow-bd); }
+  .box.warn .box-label { color: #7A6000; }
+  :root[data-theme="dark"] .box.warn .box-label,
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .box.warn .box-label { color: var(--yellow-bd); } }
+
+  /* Code block */
+  .code-block {
+    background: var(--code-bg);
+    color: var(--code-fg);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    overflow-x: auto;
+    line-height: 1.6;
+    white-space: pre;
+  }
+  .code-block .comment { color: #6C7086; }
+  .code-block .cmd { color: #89DCEB; }
+  .code-block .flag { color: #CBA6F7; }
+  .code-block .path { color: #A6E3A1; }
+
+  /* Table */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 480px; }
+  th {
+    background: var(--azure); color: white;
+    padding: 10px 14px; text-align: left; font-weight: 600; font-size: 12px;
+    letter-spacing: .04em;
+  }
+  th:first-child { border-radius: var(--radius) 0 0 0; }
+  th:last-child { border-radius: 0 var(--radius) 0 0; }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:nth-child(even) td { background: var(--bg); }
+  tr:nth-child(odd) td { background: var(--card); }
+
+  /* Step list */
+  .steps { display: flex; flex-direction: column; gap: 12px; }
+  .step {
+    display: flex; gap: 14px; align-items: flex-start;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 16px;
+  }
+  .step-num {
+    min-width: 28px; height: 28px; border-radius: 50%;
+    background: var(--azure); color: white;
+    font-size: 13px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .step-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .step-body strong { font-size: 14px; font-weight: 600; }
+  .step-body span { font-size: 13px; color: var(--fg2); }
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: var(--azure-lt);
+    color: var(--azure-dk);
+    padding: 1px 6px; border-radius: 4px;
+  }
+
+  /* Analogy card */
+  .analogy {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px 20px;
+    display: flex; gap: 14px; align-items: flex-start;
+  }
+  .analogy-icon { font-size: 28px; flex-shrink: 0; }
+  .analogy-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .analogy-text strong { font-size: 14px; font-weight: 600; }
+  .analogy-text span { font-size: 13px; color: var(--fg2); }
+
+  /* Badge */
+  .badge {
+    display: inline-flex; align-items: center;
+    font-size: 11px; font-weight: 600; padding: 2px 8px;
+    border-radius: 20px; letter-spacing: .03em;
+  }
+  .badge-blue { background: var(--azure-lt); color: var(--azure); }
+  .badge-green { background: var(--green-lt); color: var(--green); }
+  .badge-orange { background: var(--orange-lt); color: var(--orange); }
+
+  /* Footer */
+  .doc-footer {
+    text-align: center; font-size: 12px; color: var(--fg2);
+    padding-top: 16px; border-top: 1px solid var(--border);
+  }
+</style>
+
+<div class="page">
+
+  <!-- Header -->
+  <div class="doc-header">
+    <div class="doc-eyebrow">Azure Lab Notes · BCA 3rd Semester · IIMT University</div>
+    <div class="doc-title">Azure Managed Disk (Block Storage)</div>
+    <div class="doc-sub">Lab performed: October 8, 2026 &nbsp;·&nbsp; VM: simpleLinuxVM (Ubuntu 22.04) &nbsp;·&nbsp; Disk: 1 TB Standard SSD</div>
+  </div>
+
+  <!-- 1. What is Managed Disk -->
+  <section>
+    <h2>1. What is Azure Managed Disk?</h2>
+    <div class="analogy">
+      <div class="analogy-icon">💾</div>
+      <div class="analogy-text">
+        <strong>Simple Analogy</strong>
+        <span>Sochो Azure Managed Disk ek <strong>external hard drive</strong> hai jo tum apni VM (computer) se attach aur detach kar sakte ho. Jaise pendrive ek computer se nikaalke doosre mein lagaate ho — waisa hi.</span>
+      </div>
+    </div>
+
+    <div class="box info">
+      <div class="box-label">Definition</div>
+      <p>Managed Disk ek <strong>block storage</strong> service hai — VM ke saath directly attach hoti hai aur OS jaisi koi bhi disk lagti hai. Azure khud disk ka management karta hai (replication, backups, encryption).</p>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Storage Type</th><th>Azure Service</th><th>Use Case</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Block Storage</strong> <span class="badge badge-blue">This Lab</span></td><td>Managed Disks</td><td>VM ka OS disk, database disk</td></tr>
+          <tr><td>Object Storage</td><td>Blob Storage</td><td>Files, images, backups (previous labs)</td></tr>
+          <tr><td>File Storage</td><td>Azure Files</td><td>Shared network drive (Lab 4-5)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 2. Disk Types -->
+  <section>
+    <h2>2. Azure Disk Types</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Disk Type</th><th>Speed</th><th>Cost</th><th>Use For</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Standard HDD</td><td>Slowest</td><td>Cheapest</td><td>Backups, dev/test</td></tr>
+          <tr><td>Standard SSD</td><td>Medium</td><td>Medium</td><td>Web servers, light workloads</td></tr>
+          <tr><td>Premium SSD <span class="badge badge-blue">Most Common</span></td><td>Fast</td><td>Higher</td><td>Production databases, enterprise apps</td></tr>
+          <tr><td>Ultra Disk</td><td>Fastest</td><td>Highest</td><td>SAP HANA, heavy databases</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 3. VM Disk Types -->
+  <section>
+    <h2>3. Azure VM mein Disk Types</h2>
+    <p>Jab tum <code>lsblk</code> chalaate ho toh 3 types ki disks dikhti hain:</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Device</th><th>Type</th><th>Data Loss on Restart?</th><th>Our Lab</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>nvme0n1</code> (30G)</td><td>OS Disk</td><td>No — permanent</td><td>Ubuntu OS tha isme</td></tr>
+          <tr><td><code>nvme1n1</code> (110G)</td><td>Temporary Disk</td><td><strong>YES — data wipe!</strong></td><td>Azure auto-adds, use mat karo</td></tr>
+          <tr><td><code>nvme0n2</code> (1TB) <span class="badge badge-green">Our Disk</span></td><td>Managed Disk (Data)</td><td>No — permanent</td><td>Humne attach kiya tha</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="box warn">
+      <div class="box-label">Warning</div>
+      <p>Temporary Disk (<code>nvme1n1</code>) pe kabhi important data mat rakho — VM restart ya deallocate hone pe sab wipe ho jaata hai!</p>
+    </div>
+  </section>
+
+  <!-- 4. Lab Steps -->
+  <section>
+    <h2>4. Lab Steps — What We Did</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <strong>Managed Disk Create kiya (Portal)</strong>
+          <span>Portal → Disks → + Create → 1TB Standard SSD, Resource Group: Storage-RG</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <strong>Disk VM se Attach kiya</strong>
+          <span>VM → Disks → + Attach existing disk → disk select karo → Save</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <strong>Disk Format kiya (ext4)</strong>
+          <span><code>sudo mkfs.ext4 /dev/nvme0n2</code> — Disk ke andar filesystem banaya</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <strong>Disk Mount kiya</strong>
+          <span><code>sudo mkdir /mnt/mydata</code> then <code>sudo mount /dev/nvme0n2 /mnt/mydata</code></span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <strong>Ownership fix kiya</strong>
+          <span><code>sudo chown sahil:sahil /mnt/mydata</code> — Permission denied fix</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <strong>Persistent Mount (fstab)</strong>
+          <span><code>echo '/dev/nvme0n2 /mnt/mydata ext4 defaults 0 0' | sudo tee -a /etc/fstab</code></span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">7</div>
+        <div class="step-body">
+          <strong>OS Disk Snapshot liya</strong>
+          <span>Portal → VM → Disks → OS Disk → Create Snapshot → Full snapshot</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">8</div>
+        <div class="step-body">
+          <strong>Snapshot se Recovery process samjhi</strong>
+          <span>Snapshot → Create Disk → VM stop → Swap OS Disk → VM start = Recovery complete</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. Key Commands -->
+  <section>
+    <h2>5. Key Commands — Exam ke liye Yaad Rakho</h2>
+
+    <h3>Disk dekho</h3>
+    <div class="code-block"><span class="cmd">lsblk</span>                          <span class="comment"># sari disks aur mount points dikhao</span>
+<span class="cmd">df -h</span>                          <span class="comment"># mounted disks aur space dikhao</span></div>
+
+    <h3>Format karo</h3>
+    <div class="code-block"><span class="cmd">sudo mkfs.ext4</span> <span class="path">/dev/nvme0n2</span>   <span class="comment"># disk ko ext4 filesystem se format karo</span></div>
+
+    <h3>Mount karo</h3>
+    <div class="code-block"><span class="cmd">sudo mkdir</span> <span class="path">/mnt/mydata</span>           <span class="comment"># mount point folder banao</span>
+<span class="cmd">sudo mount</span> <span class="path">/dev/nvme0n2</span> <span class="path">/mnt/mydata</span>  <span class="comment"># disk ko folder se jodo</span></div>
+
+    <h3>Persistent mount (reboot ke baad bhi kaam kare)</h3>
+    <div class="code-block"><span class="cmd">echo</span> <span class="flag">'/dev/nvme0n2  /mnt/mydata  ext4  defaults  0  0'</span> | <span class="cmd">sudo tee -a</span> <span class="path">/etc/fstab</span>
+<span class="cmd">cat</span> <span class="path">/etc/fstab</span>                    <span class="comment"># verify entry</span></div>
+
+    <h3>Permission fix</h3>
+    <div class="code-block"><span class="cmd">sudo chown</span> <span class="flag">sahil:sahil</span> <span class="path">/mnt/mydata</span>  <span class="comment"># folder ka owner apna user banao</span></div>
+  </section>
+
+  <!-- 6. Concepts -->
+  <section>
+    <h2>6. Important Concepts</h2>
+
+    <h3>mkfs vs mount — Difference</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Command</th><th>Kya karta hai</th><th>Analogy</th></tr></thead>
+        <tbody>
+          <tr><td><code>mkfs.ext4</code></td><td>Disk ko format karta hai, filesystem banata hai</td><td>Nayi notebook mein lines/pages banana</td></tr>
+          <tr><td><code>mount</code></td><td>Disk ko ek folder se attach karta hai</td><td>Notebook ko shelf pe rakhna jahan se use kar sako</td></tr>
+          <tr><td><code>/etc/fstab</code></td><td>Automatic mount on boot</td><td>Notebook hamesha wahi shelf pe auto-place</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Snapshot vs Backup</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>Snapshot</th><th>Backup</th></tr></thead>
+        <tbody>
+          <tr><td>Speed</td><td>Instant (seconds)</td><td>Slow (minutes/hours)</td></tr>
+          <tr><td>Storage</td><td>Incremental — sirf changes</td><td>Full copy</td></tr>
+          <tr><td>Use</td><td>Quick rollback before changes</td><td>Long-term data retention</td></tr>
+          <tr><td>Azure Service</td><td>Disk Snapshot</td><td>Azure Backup</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="box success">
+      <div class="box-label">Recovery Flow</div>
+      <p><strong>Snapshot → Create Disk → Stop VM → Swap OS Disk → Start VM</strong><br>
+      Agar OS corrupt ho jaaye — yeh steps follow karo aur VM wapas usi state mein aa jaayegi.</p>
+    </div>
+  </section>
+
+  <!-- 7. Cleanup -->
+  <section>
+    <h2>7. Resource Cleanup — Azure CLI Commands</h2>
+    <div class="code-block"><span class="comment"># Pehle locks remove karo</span>
+<span class="cmd">az lock delete</span> --ids $(<span class="cmd">az lock list</span> <span class="flag">--resource-group</span> Storage-RG <span class="flag">--query</span> <span class="flag">"[].id"</span> <span class="flag">-o tsv</span>)
+
+<span class="comment"># Poora Resource Group delete karo (sab kuch andar se delete)</span>
+<span class="cmd">az group delete</span> <span class="flag">--name</span> Storage-RG <span class="flag">-y --no-wait</span>
+
+<span class="comment"># Multiple groups ek saath delete karo</span>
+<span class="cmd">for</span> rg <span class="cmd">in</span> Group1 Group2 Group3; <span class="cmd">do</span> <span class="cmd">az group delete</span> <span class="flag">--name</span> $rg <span class="flag">-y --no-wait</span>; <span class="cmd">done</span></div>
+  </section>
+
+  <div class="doc-footer">IIMT University &nbsp;·&nbsp; Azure Block Storage Lab &nbsp;·&nbsp; BCA 3rd Semester &nbsp;·&nbsp; October 2026</div>
+
+</div>
