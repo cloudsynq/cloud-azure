@@ -54,7 +54,7 @@ the whole private network, built end to end.
 Joining networks together — peering, VPN gateways, ExpressRoute and the routes
 that make them usable.
 
-[Theory notes](06-intersite-connectivity/theory-notes.html)
+[Theory notes](06-intersite-connectivity/theory-notes.html) · [Hands-on lab — VNet Peering](06-intersite-connectivity/lab.html)
 
 ### 07 · Traffic Management
 Spreading and steering traffic with load balancers, Traffic Manager and

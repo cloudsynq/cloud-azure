@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<title>Azure VNet Peering — Hands-On Lab</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap">
+<style>
+  :root{--bg:#F0F6FF;--surface:#fff;--fg:#0D1E34;--muted:#4A6080;--accent:#0078D4;--border:#D0E3F5;--code-bg:#0A2540;--code-fg:#A8D8FF;--tag-bg:#EFF6FF;--tag-fg:#1D4ED8;--green:#107C10;--amber:#D97706;--red:#C50F1F;}
+  @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#07111F;--surface:#0C1D33;--fg:#D0E6F8;--muted:#7090B0;--accent:#4BA3E8;--border:#1A3050;--tag-bg:#0A2040;--tag-fg:#93C5FD;--green:#6CCB5F;--amber:#FCD34D;--red:#F47474;color-scheme:dark;}}
+  :root[data-theme="dark"]{--bg:#07111F;--surface:#0C1D33;--fg:#D0E6F8;--muted:#7090B0;--accent:#4BA3E8;--border:#1A3050;--tag-bg:#0A2040;--tag-fg:#93C5FD;--green:#6CCB5F;--amber:#FCD34D;--red:#F47474;color-scheme:dark;}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--fg);font-family:'Inter',sans-serif;font-size:14px;line-height:1.7;padding:20px 16px 60px;}
+  .wrap{max-width:860px;margin:0 auto;}
+  .hero{background:linear-gradient(135deg,#0A2540 0%,#003A75 100%);border-radius:14px;padding:32px;margin-bottom:20px;color:#fff;}
+  .hero .badge{background:rgba(255,255,255,.15);display:inline-block;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;margin-bottom:10px;letter-spacing:.04em;}
+  .hero h1{font-size:22px;font-weight:700;margin-bottom:4px;}
+  .hero .sub{font-size:13px;opacity:.7;}
+  .arch{background:var(--code-bg);color:var(--code-fg);border-radius:10px;padding:18px;margin:16px 0;font-family:'Fira Code',monospace;font-size:12px;line-height:1.9;overflow-x:auto;white-space:pre;}
+  .section{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin-bottom:14px;}
+  .section h2{font-size:15px;font-weight:700;color:var(--accent);margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--border);}
+  .section h3{font-size:13.5px;font-weight:600;margin:14px 0 7px;}
+  .section p{font-size:13.5px;margin-bottom:9px;}
+  ul,ol{padding-left:20px;margin:8px 0;}li{margin-bottom:5px;font-size:13.5px;}
+  .phase{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:14px;}
+  .phead{padding:12px 20px;display:flex;align-items:center;gap:12px;}
+  .phead .num{background:rgba(255,255,255,.25);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0;}
+  .phead .ptitle{font-weight:700;font-size:14px;color:#fff;}
+  .phead .psub{font-size:12px;color:rgba(255,255,255,.8);}
+  .pbody{padding:16px 20px;}
+  .step{display:flex;gap:12px;margin-bottom:14px;}.step:last-child{margin-bottom:0;}
+  .snum{background:var(--tag-bg);color:var(--tag-fg);width:24px;height:24px;border-radius:50%;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+  .scontent{flex:1;min-width:0;}.scontent .stitle{font-weight:600;font-size:13.5px;margin-bottom:4px;}
+  .scontent p,.scontent li{font-size:13px;}
+  .code{background:var(--code-bg);color:var(--code-fg);border-radius:8px;padding:12px 14px;margin:8px 0;font-family:'Fira Code',monospace;font-size:12px;line-height:1.7;overflow-x:auto;white-space:pre;}
+  .note{border-left:4px solid var(--accent);background:var(--tag-bg);border-radius:0 8px 8px 0;padding:9px 13px;margin:8px 0;font-size:13px;}
+  .note .nl{font-weight:700;font-size:11px;text-transform:uppercase;color:var(--tag-fg);margin-bottom:2px;}
+  .ok{border-left:4px solid var(--green);background:color-mix(in srgb,var(--green) 10%,transparent);border-radius:0 8px 8px 0;padding:9px 13px;margin:8px 0;font-size:13px;}
+  .ok .nl{font-weight:700;font-size:11px;text-transform:uppercase;color:var(--green);margin-bottom:2px;}
+  .warn{border-left:4px solid var(--amber);background:color-mix(in srgb,var(--amber) 10%,transparent);border-radius:0 8px 8px 0;padding:9px 13px;margin:8px 0;font-size:13px;}
+  .warn .nl{font-weight:700;font-size:11px;text-transform:uppercase;color:var(--amber);margin-bottom:2px;}
+  .fail{border-left:4px solid var(--red);background:color-mix(in srgb,var(--red) 10%,transparent);border-radius:0 8px 8px 0;padding:9px 13px;margin:8px 0;font-size:13px;}
+  .fail .nl{font-weight:700;font-size:11px;text-transform:uppercase;color:var(--red);margin-bottom:2px;}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px;}
+  th{background:var(--tag-bg);color:var(--tag-fg);font-weight:700;font-size:12px;padding:8px 12px;text-align:left;border:1px solid var(--border);}
+  td{padding:7px 12px;border:1px solid var(--border);}
+  tr:nth-child(even) td{background:color-mix(in srgb,var(--border) 20%,transparent);}
+  .tag{display:inline-block;background:var(--tag-bg);color:var(--tag-fg);font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px;margin:2px;}
+  .ss{display:inline-flex;align-items:center;gap:5px;background:color-mix(in srgb,var(--amber) 15%,transparent);border:1px solid var(--amber);border-radius:6px;padding:3px 9px;font-size:11.5px;font-weight:600;color:var(--amber);margin:6px 0;}
+  footer{text-align:center;font-size:11px;color:var(--muted);margin-top:24px;padding-top:12px;border-top:1px solid var(--border);}
+  @media(max-width:600px){.phead{flex-wrap:wrap;}.pbody{padding:12px 14px;}.step{flex-direction:column;gap:6px;}.snum{width:20px;height:20px;}}
+</style>
+
+<div class="wrap">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="badge">Azure AZ-104 · Module 06 · Hands-On Lab</div>
+  <h1>VNet Peering — Connect Two Isolated Networks</h1>
+  <div class="sub">Build two VNets · Prove they can't talk · Peer them · Prove they can</div>
+</div>
+
+<!-- WHAT WE BUILD -->
+<div class="section">
+  <h2>What We'll Build</h2>
+  <p>Two virtual networks that live in complete isolation. We'll place a Linux VM in each, prove that they cannot reach each other, then set up VNet Peering and prove that they can. No VPN gateway, no extra cost — just peering.</p>
+  <div class="arch">  Resource Group: rg-peering-lab
+  │
+  ├── VNet-A  (10.1.0.0/16)  East US
+  │    └── Subnet-A  10.1.0.0/24
+  │         └── VM-A  (private IP: 10.1.0.4)
+  │
+  └── VNet-B  (10.2.0.0/16)  East US
+       └── Subnet-B  10.2.0.0/24
+            └── VM-B  (private IP: 10.2.0.4)
+
+  BEFORE PEERING:  VM-A ✗ cannot ping VM-B
+  AFTER PEERING:   VM-A ✓ can ping VM-B</div>
+
+  <h3>Key Facts Before Starting</h3>
+  <ul>
+    <li><strong>No overlapping address spaces</strong> — 10.1.x.x and 10.2.x.x are different, so peering is allowed.</li>
+    <li><strong>Peering is not transitive</strong> — if A peers with B and B peers with C, A cannot reach C automatically.</li>
+    <li><strong>Two connections are always made</strong> — one from A→B and one from B→A. Both must exist.</li>
+    <li><strong>No reboot, no downtime</strong> — peering takes effect in seconds.</li>
+  </ul>
+</div>
+
+<!-- TIME + COST -->
+<div class="section">
+  <h2>Lab Info</h2>
+  <table>
+    <tr><th>Item</th><th>Detail</th></tr>
+    <tr><td>Estimated time</td><td>45–60 minutes</td></tr>
+    <tr><td>VM size</td><td>Standard_B1s (cheapest option)</td></tr>
+    <tr><td>OS</td><td>Ubuntu Server 22.04 LTS</td></tr>
+    <tr><td>Estimated cost</td><td>~₹10–15 if deleted same day</td></tr>
+    <tr><td>Region</td><td>East US (or any single region)</td></tr>
+  </table>
+  <div class="warn">
+    <div class="nl">Cost Warning</div>
+    Delete the Resource Group as soon as you finish the lab. Two running VMs accumulate charges every hour.
+  </div>
+</div>
+
+<!-- PHASE 1 -->
+<div class="phase">
+  <div class="phead" style="background:linear-gradient(90deg,#003A75,#0052A5);">
+    <div class="num">1</div>
+    <div>
+      <div class="ptitle">Create the Resource Group</div>
+      <div class="psub">1 step</div>
+    </div>
+  </div>
+  <div class="pbody">
+    <div class="step">
+      <div class="snum">1</div>
+      <div class="scontent">
+        <div class="stitle">Create Resource Group</div>
+        <p>Go to <strong>portal.azure.com</strong> → search <strong>Resource groups</strong> → <strong>+ Create</strong></p>
+        <table>
+          <tr><th>Field</th><th>Value</th></tr>
+          <tr><td>Subscription</td><td>Your subscription</td></tr>
+          <tr><td>Resource group name</td><td><code>rg-peering-lab</code></td></tr>
+          <tr><td>Region</td><td>East US</td></tr>
+        </table>
+        <p>Click <strong>Review + create</strong> → <strong>Create</strong>.</p>
+        <div class="ss">📸 Screenshot: Resource Group created successfully</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PHASE 2 -->
+<div class="phase">
+  <div class="phead" style="background:linear-gradient(90deg,#003A75,#0052A5);">
+    <div class="num">2</div>
+    <div>
+      <div class="ptitle">Create VNet-A and VNet-B</div>
+      <div class="psub">Steps 2–5 · Two separate virtual networks</div>
+    </div>
+  </div>
+  <div class="pbody">
+
+    <div class="step">
+      <div class="snum">2</div>
+      <div class="scontent">
+        <div class="stitle">Create VNet-A</div>
+        <p>Search <strong>Virtual networks</strong> → <strong>+ Create</strong></p>
+        <table>
+          <tr><th>Tab</th><th>Field</th><th>Value</th></tr>
+          <tr><td>Basics</td><td>Resource group</td><td>rg-peering-lab</td></tr>
+          <tr><td>Basics</td><td>Name</td><td><code>VNet-A</code></td></tr>
+          <tr><td>Basics</td><td>Region</td><td>East US</td></tr>
+          <tr><td>IP Addresses</td><td>IPv4 address space</td><td><code>10.1.0.0/16</code></td></tr>
+          <tr><td>IP Addresses</td><td>Subnet name</td><td><code>Subnet-A</code></td></tr>
+          <tr><td>IP Addresses</td><td>Subnet range</td><td><code>10.1.0.0/24</code></td></tr>
+        </table>
+        <p>Click <strong>Review + create</strong> → <strong>Create</strong>.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="snum">3</div>
+      <div class="scontent">
+        <div class="stitle">Create VNet-B</div>
+        <p>Repeat the same steps for the second network:</p>
+        <table>
+          <tr><th>Tab</th><th>Field</th><th>Value</th></tr>
+          <tr><td>Basics</td><td>Name</td><td><code>VNet-B</code></td></tr>
+          <tr><td>Basics</td><td>Region</td><td>East US</td></tr>
+          <tr><td>IP Addresses</td><td>IPv4 address space</td><td><code>10.2.0.0/16</code></td></tr>
+          <tr><td>IP Addresses</td><td>Subnet name</td><td><code>Subnet-B</code></td></tr>
+          <tr><td>IP Addresses</td><td>Subnet range</td><td><code>10.2.0.0/24</code></td></tr>
+        </table>
+        <div class="note">
+          <div class="nl">Why different address spaces?</div>
+          Peering requires that the two networks have <strong>no overlapping IP ranges</strong>. 10.1.x.x and 10.2.x.x never overlap — if you tried to peer 10.0.0.0/16 with 10.0.0.0/16 you would get an error.
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="snum">4</div>
+      <div class="scontent">
+        <div class="stitle">Confirm both VNets exist</div>
+        <p>Go to <strong>Virtual networks</strong> and verify that <code>VNet-A</code> and <code>VNet-B</code> both appear in <code>rg-peering-lab</code>.</p>
+        <div class="ss">📸 Screenshot: Both VNets listed</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- PHASE 3 -->
+<div class="phase">
+  <div class="phead" style="background:linear-gradient(90deg,#003A75,#0052A5);">
+    <div class="num">3</div>
+    <div>
+      <div class="ptitle">Create Two Virtual Machines</div>
+      <div class="psub">Steps 5–7 · One VM per VNet</div>
+    </div>
+  </div>
+  <div class="pbody">
+
+    <div class="step">
+      <div class="snum">5</div>
+      <div class="scontent">
+        <div class="stitle">Create VM-A (in VNet-A)</div>
+        <p>Search <strong>Virtual machines</strong> → <strong>+ Create</strong> → <strong>Azure virtual machine</strong></p>
+        <table>
+          <tr><th>Tab</th><th>Field</th><th>Value</th></tr>
+          <tr><td>Basics</td><td>Resource group</td><td>rg-peering-lab</td></tr>
+          <tr><td>Basics</td><td>VM name</td><td><code>VM-A</code></td></tr>
+          <tr><td>Basics</td><td>Region</td><td>East US</td></tr>
+          <tr><td>Basics</td><td>Image</td><td>Ubuntu Server 22.04 LTS</td></tr>
+          <tr><td>Basics</td><td>Size</td><td>Standard_B1s</td></tr>
+          <tr><td>Basics</td><td>Authentication type</td><td>Password</td></tr>
+          <tr><td>Basics</td><td>Username</td><td><code>azureuser</code></td></tr>
+          <tr><td>Basics</td><td>Password</td><td>Choose a strong password</td></tr>
+          <tr><td>Networking</td><td>Virtual network</td><td><strong>VNet-A</strong></td></tr>
+          <tr><td>Networking</td><td>Subnet</td><td>Subnet-A</td></tr>
+          <tr><td>Networking</td><td>Public IP</td><td>Create new (default name is fine)</td></tr>
+          <tr><td>Networking</td><td>NIC NSG</td><td>Basic</td></tr>
+          <tr><td>Networking</td><td>Public inbound ports</td><td>Allow SSH (22)</td></tr>
+        </table>
+        <p>Click <strong>Review + create</strong> → <strong>Create</strong>. Wait for deployment to complete.</p>
+        <div class="warn">
+          <div class="nl">Write it down</div>
+          After deployment, open VM-A → note its <strong>Private IP address</strong> (should be 10.1.0.4). You will need this later.
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="snum">6</div>
+      <div class="scontent">
+        <div class="stitle">Create VM-B (in VNet-B)</div>
+        <p>Repeat the same process with these values:</p>
+        <table>
+          <tr><th>Field</th><th>Value</th></tr>
+          <tr><td>VM name</td><td><code>VM-B</code></td></tr>
+          <tr><td>Virtual network</td><td><strong>VNet-B</strong></td></tr>
+          <tr><td>Subnet</td><td>Subnet-B</td></tr>
+          <tr><td>Public inbound ports</td><td>Allow SSH (22)</td></tr>
+        </table>
+        <p>Use the same username and password as VM-A for simplicity.</p>
+        <div class="warn">
+          <div class="nl">Write it down</div>
+          After deployment, note VM-B's <strong>Private IP address</strong> (should be 10.2.0.4). You'll use it to test the ping.
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="snum">7</div>
+      <div class="scontent">
+        <div class="stitle">Record your private IPs</div>
+        <p>Fill in this table — you will need these values in the next phases:</p>
+        <table>
+          <tr><th>VM</th><th>VNet</th><th>Private IP (write it here)</th></tr>
+          <tr><td>VM-A</td><td>VNet-A</td><td>10.1.0.___</td></tr>
+          <tr><td>VM-B</td><td>VNet-B</td><td>10.2.0.___</td></tr>
+        </table>
+        <div class="ss">📸 Screenshot: VM-A Overview showing Private IP address</div>
+        <div class="ss">📸 Screenshot: VM-B Overview showing Private IP address</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- PHASE 4 -->
+<div class="phase">
+  <div class="phead" style="background:linear-gradient(90deg,#8B0000,#B22222);">
+    <div class="num">4</div>
+    <div>
+      <div class="ptitle">Prove They Can't Talk (Before Peering)</div>
+      <div class="psub">Steps 8–9 · Expected result: FAIL</div>
+    </div>
+  </div>
+  <div class="pbody">
+
+    <div class="step">
+      <div class="snum">8</div>
+      <div class="scontent">
+        <div class="stitle">Allow ICMP (ping) through VM-A's NSG</div>
+        <p>By default the NSG blocks ping. We need to add an inbound rule to allow ICMP on VM-B so that pings can reach it.</p>
+        <p>Go to <strong>VM-B</strong> → <strong>Networking</strong> → <strong>Add inbound port rule</strong></p>
+        <table>
+          <tr><th>Field</th><th>Value</th></tr>
+          <tr><td>Source</td><td>Any</td></tr>
+          <tr><td>Source port ranges</td><td>*</td></tr>
+          <tr><td>Destination</td><td>Any</td></tr>
+          <tr><td>Protocol</td><td>ICMP</td></tr>
+          <tr><td>Action</td><td>Allow</td></tr>
+          <tr><td>Priority</td><td>300</td></tr>
+          <tr><td>Name</td><td><code>Allow-ICMP-Inbound</code></td></tr>
+        </table>
+        <p>Click <strong>Add</strong>.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="snum">9</div>
+      <div class="scontent">
+        <div class="stitle">Test ping from VM-A using Run Command</div>
+        <p>Go to <strong>VM-A</strong> → left menu → <strong>Run command</strong> → <strong>RunShellScript</strong></p>
+        <p>In the script box, type:</p>
+        <div class="code">ping -c 4 10.2.0.4</div>
+        <p>(Replace <code>10.2.0.4</code> with the actual private IP of VM-B if different.)</p>
+        <p>Click <strong>Run</strong> and wait for the output.</p>
+        <div class="fail">
+          <div class="nl">Expected Result — This Should Fail</div>
+          You will see: <code>100% packet loss</code> or the command will time out. This is correct — the two VNets are completely isolated. Azure routes stop at the edge of each VNet. There is no path from 10.1.x.x to 10.2.x.x yet.
+        </div>
+        <div class="ss">📸 Screenshot: Run Command output showing 100% packet loss</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- PHASE 5 -->
+<div class="phase">
+  <div class="phead" style="background:linear-gradient(90deg,#003A75,#0052A5);">
+    <div class="num">5</div>
+    <div>
+      <div class="ptitle">Configure VNet Peering</div>
+      <div class="psub">Steps 10–11 · Two peering links required</div>
+    </div>
+  </div>
+  <div class="pbody">
+
+    <div class="note">
+      <div class="nl">Why Two Links?</div>
+      Azure peering is not automatic in both directions. When you go to VNet-A and add a peer, the portal can optionally add the return link (VNet-B → VNet-A) at the same time. Make sure <strong>"Add a peering link to [VNet-B]"</strong> checkbox is checked — otherwise you need to add the second link manually from VNet-B.
+    </div>
+
+    <div class="step">
+      <div class="snum">10</div>
+      <div class="scontent">
+        <div class="stitle">Add Peering from VNet-A</div>
+        <p>Search <strong>Virtual networks</strong> → click <strong>VNet-A</strong> → left menu → <strong>Peerings</strong> → <strong>+ Add</strong></p>
+        <table>
+          <tr><th>Section</th><th>Field</th><th>Value</th></tr>
+          <tr><td>This virtual network</td><td>Peering link name</td><td><code>VNetA-to-VNetB</code></td></tr>
+          <tr><td>This virtual network</td><td>Allow VNet-A traffic to reach VNet-B</td><td>✅ Enabled</td></tr>
+          <tr><td>This virtual network</td><td>Allow traffic forwarded from VNet-B</td><td>✅ Enabled</td></tr>
+          <tr><td>Remote virtual network</td><td>Peering link name</td><td><code>VNetB-to-VNetA</code></td></tr>
+          <tr><td>Remote virtual network</td><td>Subscription</td><td>Your subscription</td></tr>
+          <tr><td>Remote virtual network</td><td>Virtual network</td><td><strong>VNet-B</strong></td></tr>
+          <tr><td>Remote virtual network</td><td>Allow VNet-B traffic to reach VNet-A</td><td>✅ Enabled</td></tr>
+        </table>
+        <p>Click <strong>Add</strong>.</p>
+        <div class="ok">
+          <div class="nl">What Just Happened</div>
+          Azure created two peering connections simultaneously: VNet-A → VNet-B and VNet-B → VNet-A. The routing tables in both VNets are updated automatically — no gateway, no route table needed.
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="snum">11</div>
+      <div class="scontent">
+        <div class="stitle">Verify Peering Status</div>
+        <p>Stay on <strong>VNet-A → Peerings</strong>. You should see:</p>
+        <table>
+          <tr><th>Peering Name</th><th>Peering Status</th><th>Expected</th></tr>
+          <tr><td>VNetA-to-VNetB</td><td>—</td><td><span class="tag" style="background:#DFF6DD;color:#107C10;">Connected</span></td></tr>
+        </table>
+        <p>Also go to <strong>VNet-B → Peerings</strong> and verify:</p>
+        <table>
+          <tr><th>Peering Name</th><th>Peering Status</th><th>Expected</th></tr>
+          <tr><td>VNetB-to-VNetA</td><td>—</td><td><span class="tag" style="background:#DFF6DD;color:#107C10;">Connected</span></td></tr>
+        </table>
+        <div class="warn">
+          <div class="nl">If Status Shows "Disconnected"</div>
+          This means only one side was created. Go to the VNet that shows Disconnected → Peerings → delete the broken link → re-add it and select the correct remote VNet.
+        </div>
+        <div class="ss">📸 Screenshot: VNet-A Peerings showing "Connected" status</div>
+        <div class="ss">📸 Screenshot: VNet-B Peerings showing "Connected" status</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- PHASE 6 -->
+<div class="phase">
+  <div class="phead" style="background:linear-gradient(90deg,#107C10,#1A6B1A);">
+    <div class="num">6</div>
+    <div>
+      <div class="ptitle">Verify Connectivity (After Peering)</div>
+      <div class="psub">Steps 12–13 · Expected result: SUCCESS</div>
+    </div>
+  </div>
+  <div class="pbody">
+
+    <div class="step">
+      <div class="snum">12</div>
+      <div class="scontent">
+        <div class="stitle">Ping VM-B from VM-A again</div>
+        <p>Go to <strong>VM-A</strong> → <strong>Run command</strong> → <strong>RunShellScript</strong></p>
+        <div class="code">ping -c 4 10.2.0.4</div>
+        <p>Click <strong>Run</strong>.</p>
+        <div class="ok">
+          <div class="nl">Expected Result — Should Succeed</div>
+          <pre style="font-family:'Fira Code',monospace;font-size:12px;line-height:1.7;margin:4px 0;">PING 10.2.0.4 (10.2.0.4) 56(84) bytes of data.
+64 bytes from 10.2.0.4: icmp_seq=1 ttl=64 time=1.23 ms
+64 bytes from 10.2.0.4: icmp_seq=2 ttl=64 time=0.98 ms
+64 bytes from 10.2.0.4: icmp_seq=3 ttl=64 time=1.05 ms
+64 bytes from 10.2.0.4: icmp_seq=4 ttl=64 time=1.11 ms
+
+--- 10.2.0.4 ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss</pre>
+          <strong>0% packet loss</strong> means the peering is working. VM-A can now reach VM-B across VNets using private IPs only — no public internet involved.
+        </div>
+        <div class="ss">📸 Screenshot: Run Command output showing 0% packet loss</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="snum">13</div>
+      <div class="scontent">
+        <div class="stitle">Check Effective Routes on VM-A's NIC</div>
+        <p>This shows exactly how Azure is routing traffic — a great thing to show students.</p>
+        <p>Go to <strong>VM-A</strong> → <strong>Networking</strong> → click the NIC name (e.g. <code>vm-a123</code>) → <strong>Help</strong> → <strong>Effective routes</strong></p>
+        <p>Look for a route with:</p>
+        <table>
+          <tr><th>Field</th><th>What You Should See</th></tr>
+          <tr><td>Address prefix</td><td><code>10.2.0.0/16</code></td></tr>
+          <tr><td>Next hop type</td><td>VNet peering</td></tr>
+          <tr><td>State</td><td>Active</td></tr>
+        </table>
+        <div class="note">
+          <div class="nl">What This Proves</div>
+          Azure automatically injected a route for 10.2.0.0/16 into VM-A's NIC when the peering was created. No manual route table was needed. This is what "peering updates routing automatically" means.
+        </div>
+        <div class="ss">📸 Screenshot: Effective routes showing 10.2.0.0/16 via VNet peering</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- PHASE 7 (OPTIONAL) -->
+<div class="phase">
+  <div class="phead" style="background:linear-gradient(90deg,#4B0082,#6A0DAD);">
+    <div class="num">7</div>
+    <div>
+      <div class="ptitle">Optional — Test the Transitive Routing Limitation</div>
+      <div class="psub">Step 14 · Concept demonstration (no extra resources needed)</div>
+    </div>
+  </div>
+  <div class="pbody">
+    <div class="step">
+      <div class="snum">14</div>
+      <div class="scontent">
+        <div class="stitle">Why peering is NOT transitive</div>
+        <p>Imagine a third VNet-C. Even if:</p>
+        <ul>
+          <li>VNet-A ↔ VNet-B (peered)</li>
+          <li>VNet-B ↔ VNet-C (peered)</li>
+        </ul>
+        <p>Azure will <strong>NOT</strong> allow VM-A in VNet-A to reach VM-C in VNet-C. The route does not exist.</p>
+        <p>To allow A ↔ C, you must add a <strong>direct peering</strong> between VNet-A and VNet-C.</p>
+        <div class="note">
+          <div class="nl">When Does This Matter?</div>
+          In hub-and-spoke architecture (a common enterprise pattern), the hub VNet peers with every spoke. If spoke-1 needs to talk to spoke-2, the traffic goes through the hub using a firewall/NVA — it does NOT go directly from spoke-1 to spoke-2 without a route table. Azure peering alone cannot do it.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PHASE 8 — CLEANUP -->
+<div class="phase">
+  <div class="phead" style="background:linear-gradient(90deg,#8B0000,#B22222);">
+    <div class="num">8</div>
+    <div>
+      <div class="ptitle">Cleanup — Delete Everything</div>
+      <div class="psub">Step 15</div>
+    </div>
+  </div>
+  <div class="pbody">
+    <div class="step">
+      <div class="snum">15</div>
+      <div class="scontent">
+        <div class="stitle">Delete the Resource Group</div>
+        <p>Go to <strong>Resource groups</strong> → click <strong>rg-peering-lab</strong> → <strong>Delete resource group</strong></p>
+        <p>Type <code>rg-peering-lab</code> in the confirmation box → <strong>Delete</strong>.</p>
+        <p>This deletes both VMs, both VNets, both NICs, both public IPs, both NSGs, all peering links — everything in one step.</p>
+        <div class="ok">
+          <div class="nl">Cost stops immediately</div>
+          Once deleted, no further charges will appear for this lab. VMs stopped but not deleted still charge for storage.
+        </div>
+        <div class="ss">📸 Screenshot: Resource group deletion confirmation</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SUMMARY -->
+<div class="section">
+  <h2>What You Demonstrated Today</h2>
+  <table>
+    <tr><th>#</th><th>Concept</th><th>What You Saw</th></tr>
+    <tr><td>1</td><td>VNet isolation is real</td><td>Ping failed before peering — two VNets are completely separate by default</td></tr>
+    <tr><td>2</td><td>Peering needs two links</td><td>Both VNetA-to-VNetB and VNetB-to-VNetA were created</td></tr>
+    <tr><td>3</td><td>No gateway needed</td><td>Peering works without any VPN Gateway — it's a direct Microsoft backbone connection</td></tr>
+    <tr><td>4</td><td>Routing is automatic</td><td>Effective routes showed 10.2.0.0/16 via VNet peering — injected automatically</td></tr>
+    <tr><td>5</td><td>No transitive routing</td><td>A↔B + B↔C does NOT give A↔C — you need a direct peer or a hub NVA</td></tr>
+  </table>
+</div>
+
+<!-- TROUBLESHOOTING -->
+<div class="section">
+  <h2>Troubleshooting</h2>
+  <table>
+    <tr><th>Problem</th><th>Likely Cause</th><th>Fix</th></tr>
+    <tr><td>Peering status shows "Disconnected"</td><td>Only one direction was created</td><td>Go to the other VNet → Peerings → check if it exists; if not, add it manually</td></tr>
+    <tr><td>Ping still fails after peering is "Connected"</td><td>NSG on VM-B blocks ICMP</td><td>VM-B → Networking → add inbound rule for Protocol: ICMP, Action: Allow</td></tr>
+    <tr><td>Can't find Run Command</td><td>It's under Operations section in left menu</td><td>VM → scroll left sidebar to Operations → Run command</td></tr>
+    <tr><td>Run Command times out</td><td>VM is still starting up</td><td>Wait 2 minutes and try again; check that VM status shows "Running"</td></tr>
+    <tr><td>Overlapping address space error when adding peering</td><td>Both VNets have same address range</td><td>VNets cannot be re-addressed after creation — delete and recreate with different ranges</td></tr>
+  </table>
+</div>
+
+<footer>
+  Free to read, free to share &nbsp;·&nbsp; By Sahil Kumar &nbsp;·&nbsp; AWS Certified Solutions Architect – Associate
+</footer>
+
+</div>
